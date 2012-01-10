@@ -57,9 +57,13 @@ case "$host" in
 # TODO: Move to GTK+-3
 #            [gtk+-3.0 >= 2.0],
 #            [GTK_VERSION="gtk+-3.0"]
+
+#            [gtk+-2.0 >= 2.18],
+#            [GTK_VERSION="gtk+-2.0"]
+
     PKG_CHECK_MODULES([GTK],
-            [gtk+-2.0 >= 2.18],
-            [GTK_VERSION="gtk+-2.0"]
+            [gtk+-3.0 >= 2.0],
+            [GTK_VERSION="gtk+-3.0"]
     )
 
     ;;

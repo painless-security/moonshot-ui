@@ -1,2 +1,2 @@
-gtk-icon-theme-name = "Tango"
-gtk-enable-mnemonics = 0
+gtk-icon-theme-name = "Gnome"
+gtk-enable-mnemonics = 1

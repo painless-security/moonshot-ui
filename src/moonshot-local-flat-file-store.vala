@@ -29,7 +29,8 @@ public class LocalFlatFileStore : Object, IIdentityCardStore {
         var key_file = new KeyFile ();
         var path = get_data_dir ();
         var filename = Path.build_filename (path, FILE_NAME);
-        
+  print("%s\n".printf(filename));
+      
         try {
             key_file.load_from_file (filename, KeyFileFlags.NONE);
         }

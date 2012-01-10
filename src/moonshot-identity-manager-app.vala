@@ -7,6 +7,7 @@ class IdentityManagerApp : Window {
     private const int WINDOW_WIDTH = 400;
     private const int WINDOW_HEIGHT = 500;
     public void show() {
+		if (view != null)
         view.show();    
     }
     public IdentityManagerApp () {
