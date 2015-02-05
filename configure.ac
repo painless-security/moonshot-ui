@@ -18,6 +18,7 @@ AM_SILENT_RULES([yes])
 AM_MAINTAINER_MODE([enable])
 
 LT_PREREQ([2.2])
+AM_PROG_AR
 LT_INIT([win32-dll])
 AC_CHECK_FUNCS_ONCE(geteuid getpwuid)
 
