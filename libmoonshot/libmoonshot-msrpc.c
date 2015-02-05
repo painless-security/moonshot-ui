@@ -33,8 +33,11 @@
  */
 
 #include <windows.h>
-//#include <rpc.h>
+#ifdef _MSC_VER
+#include <rpc.h>
+#else
 #include <msrpc-mingw.h>
+#endif
 
 #include "libmoonshot.h"
 #include "libmoonshot-common.h"
