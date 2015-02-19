@@ -120,7 +120,7 @@ static void launch_server (MoonshotError **error) {
     BOOL success;
     DWORD value_type;
     DWORD length;
-    char exe_path[1024];
+    char* exe_path=NULL;
 
     status = RegOpenKeyEx (HKEY_LOCAL_MACHINE,
                            MOONSHOT_INSTALL_PATH_KEY,
@@ -143,9 +143,29 @@ static void launch_server (MoonshotError **error) {
                     MOONSHOT_INSTALL_PATH_KEY);
         return;
     }
+    length = 0;
+    status = RegQueryValueEx (key, NULL, NULL, &value_type, (PVOID )exe_path, &length);
+    if (status == ERROR_SUCCESS) {
+        exe_path = (char *)malloc(length + 1);
+        if (exe_path != NULL) {
+            status = RegQueryValueEx (key, NULL, NULL, &value_type, (PVOID )exe_path, &length);
+        } else {
+            *error = moonshot_error_new
+                        (MOONSHOT_ERROR_OS_ERROR,
+                         "Out of memory allocating %d bytes for registry value",
+                         length);
+            return;
+        }
+    }
 
-    length = 1023;
-    status = RegQueryValueEx (key, NULL, NULL, &value_type, (LPBYTE )exe_path, &length);
+    if (status != ERROR_SUCCESS) {
+        *error = moonshot_error_new_with_status
+                   (MOONSHOT_ERROR_OS_ERROR,
+                    status,
+                    "Unable to read value of registry key HKLM\\%s",
+                    MOONSHOT_INSTALL_PATH_KEY);
+        goto cleanup;
+    }
 
     if (value_type != REG_SZ) {
         *error = moonshot_error_new_with_status
@@ -154,19 +174,10 @@ static void launch_server (MoonshotError **error) {
                     "Value of registry key HKLM\\%s is invalid. Please set it "
                     "to point to the location of moonshot.exe",
                     MOONSHOT_INSTALL_PATH_KEY);
-        return;
+        goto cleanup;
     }
 
-
-    if (status != 0) {
-        *error = moonshot_error_new_with_status
-                   (MOONSHOT_ERROR_OS_ERROR,
-                    status,
-                    "Unable to read value of registry key HKLM\\%s",
-                    MOONSHOT_INSTALL_PATH_KEY);
-        return;
-    }
-
+    exe_path[length] = 0;
     startup_info.cb = sizeof (startup_info);
     success = CreateProcess (exe_path,
                              NULL,
@@ -184,8 +195,11 @@ static void launch_server (MoonshotError **error) {
                     GetLastError (),
                     "Unable to spawn the moonshot server at '%s'",
                     exe_path);
-        return;
+        goto cleanup;
     }
+cleanup:
+    if (exe_path)
+        free(exe_path);
 }
 
 static void bind_rpc (MoonshotError **error)
