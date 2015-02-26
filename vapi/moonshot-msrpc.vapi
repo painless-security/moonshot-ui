@@ -16,7 +16,10 @@ namespace MoonshotRpcInterface {
         string always_confirm;
     }
 
-    [CCode (cname = "moonshot_get_identity_rpc")]
+    [CCode (cname = "c_moonshot_show_ui_rpc")]
+    public extern void show_ui();
+
+    [CCode (cname = "c_moonshot_get_identity_rpc")]
     public extern void get_identity (Rpc.AsyncCall call,
                                      string nai,
                                      string password,
@@ -28,7 +31,7 @@ namespace MoonshotRpcInterface {
                                      ref string subject_name_constraint,
                                      ref string subject_alt_name_constraint);
 
-    [CCode (cname = "moonshot_get_default_identity_rpc")]
+    [CCode (cname = "c_moonshot_get_default_identity_rpc")]
     public extern void get_default_identity (Rpc.AsyncCall call,
                                              ref string nai_out,
                                              ref string password_out);

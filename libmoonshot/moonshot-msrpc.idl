@@ -36,4 +36,6 @@ interface moonshot
                                       [in, string] const char *subject_alt,
                                       [in, string] const char *server_cert,
                                       int force_flat_file_store);
+
+    void moonshot_show_ui_rpc ();
 }

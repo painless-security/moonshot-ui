@@ -49,6 +49,7 @@
 
 #define MOONSHOT_ENDPOINT_NAME "/org/janet/Moonshot"
 #define MOONSHOT_INSTALL_PATH_KEY "Software\\Moonshot"
+#define MOONSHOT_STARTUP_ARGS "--dbus-launched"
 
 void *__RPC_USER MIDL_user_allocate (size_t size) {
     return malloc (size);
@@ -119,7 +120,9 @@ static void launch_server (MoonshotError **error) {
     LONG status;
     BOOL success;
     DWORD value_type;
+    DWORD commandline_length;
     DWORD length;
+    char* commandline=NULL;
     char* exe_path=NULL;
 
     status = RegOpenKeyEx (HKEY_LOCAL_MACHINE,
@@ -179,8 +182,19 @@ static void launch_server (MoonshotError **error) {
 
     exe_path[length] = 0;
     startup_info.cb = sizeof (startup_info);
+    commandline_length = length + 1 + sizeof(MOONSHOT_STARTUP_ARGS);
+    commandline = malloc(commandline_length + 1);
+    if (commandline == NULL) {
+        *error = moonshot_error_new
+                    (MOONSHOT_ERROR_OS_ERROR,
+                        "Out of memory allocating %d bytes for moonshot commandline.",
+                        length);
+        goto cleanup;
+    }
+    snprintf(commandline, commandline_length, "%s %s", exe_path, MOONSHOT_STARTUP_ARGS);
+    commandline[commandline_length] = 0;
     success = CreateProcess (exe_path,
-                             NULL,
+                             commandline,
                              NULL,
                              NULL,
                              TRUE,
@@ -200,6 +214,8 @@ static void launch_server (MoonshotError **error) {
 cleanup:
     if (exe_path)
         free(exe_path);
+    if (commandline)
+        free(commandline);
 }
 
 static void bind_rpc (MoonshotError **error)
@@ -311,7 +327,7 @@ int moonshot_get_identity (const char     *nai,
     *subject_alt_name_constraint_out = NULL;
 
     RPC_TRY_EXCEPT {
-        moonshot_get_identity_rpc (&call,
+        c_moonshot_get_identity_rpc (&call,
                                    nai,
                                    password,
                                    service,
@@ -370,7 +386,7 @@ int moonshot_get_default_identity (char          **nai_out,
     *subject_alt_name_constraint_out = NULL;
 
     RPC_TRY_EXCEPT {
-        moonshot_get_default_identity_rpc (&call,
+        c_moonshot_get_default_identity_rpc (&call,
                                            nai_out,
                                            password_out,
                                            server_certificate_hash_out,
@@ -431,7 +447,7 @@ int moonshot_install_id_card (const char     *display_name,
     if (server_cert == NULL) server_cert = "";
 
     RPC_TRY_EXCEPT {
-        success = moonshot_install_id_card_rpc (display_name,
+        success = c_moonshot_install_id_card_rpc (display_name,
                                                 user_name,
                                                 password,
                                                 realm,

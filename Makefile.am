@@ -123,7 +123,7 @@ if IPC_MSRPC
 AM_CPPFLAGS += -Isrc
 
 AM_VALAFLAGS += \
-	--pkg moonshot-msrpc --pkg msrpc-1.0 \
+	--pkg moonshot-msrpc --pkg msrpc-1.0 --pkg msrpc-1.0-extra \
 	--define=IPC_MSRPC
 
 BUILT_SOURCES = libmoonshot/moonshot-msrpc.h \
@@ -132,8 +132,10 @@ BUILT_SOURCES = libmoonshot/moonshot-msrpc.h \
 
 DISTCLEANFILES = ${BUILT_SOURCES}
 
+export MIDL_NATIVE = ${MIDL}
+
 libmoonshot/moonshot-msrpc.h: libmoonshot/moonshot-msrpc.idl libmoonshot/moonshot-msrpc.acf
-	${AM_V_GEN} ${MIDL_WRAPPER} -o libmoonshot -m "${MIDL}" $^
+	${AM_V_GEN} ${MIDL_WRAPPER} -o libmoonshot -m ${top_builddir}/moonshot-midl $^
 
 libmoonshot/moonshot-msrpc_s.c: libmoonshot/moonshot-msrpc.h
 libmoonshot/moonshot-msrpc_c.c: libmoonshot/moonshot-msrpc.h
@@ -143,7 +145,9 @@ libmoonshot_libmoonshot_la_SOURCES += \
 
 
 nodist_src_moonshot_SOURCES = \
-        libmoonshot/moonshot-msrpc_s.c
+        libmoonshot/moonshot-msrpc_s.c \
+        libmoonshot/moonshot-msrpc_c.c
+
 
 nodist_libmoonshot_libmoonshot_la_SOURCES = \
         libmoonshot/moonshot-msrpc_c.c

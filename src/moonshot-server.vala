@@ -265,10 +265,37 @@ public class MoonshotServer : Object {
 
     private static MoonshotServer instance = null;
 
+    private static void log_function(uint    status_code,
+                                     string  format,
+                                     va_list args)
+    {
+        stdout.printf("RPC Error %u:\n    ", status_code);
+        stdout.vprintf(format, args);
+        stdout.printf("\n");
+        stdout.flush();
+    }
+
     public static void start (IdentityManagerApp app)
     {
         parent_app = app;
-        Rpc.server_start (MoonshotRpcInterface.spec, "/org/janet/Moonshot", Rpc.Flags.PER_USER);
+        /* Rpc.server_start() would conveniently call Rpc.init() for us.
+         * Unfortunately, the default log function calls exit() on any
+         * error. We'd prefer to send a message to the existing server
+         * if there is one, so we need to use a custom log function.
+         */
+        Rpc.init();
+        Rpc.set_log_function(log_function);
+        if (Rpc.server_start (MoonshotRpcInterface.spec, "/org/janet/Moonshot", Rpc.Flags.PER_USER) != 0) {
+            /* Server failed to start; bind as client and send message to server to show ui */
+            uint status = Rpc.client_bind(ref MoonshotRpcInterface.binding_handle, "/org/janet/Moonshot", Rpc.Flags.PER_USER);
+            if (status != 0) {
+                /* total failure; log error message and bail */
+                GLib.log("Moonshot UI", GLib.LogLevelFlags.LEVEL_INFO, "Could neither launch server nor bind as client. status code: %u", status);
+            } else {
+                MoonshotRpcInterface.show_ui();
+            }
+            GLib.Process.exit(0);
+        }
     }
 
     public static MoonshotServer get_instance ()
@@ -276,6 +303,16 @@ public class MoonshotServer : Object {
         if (instance == null)
             instance = new MoonshotServer ();
         return instance;
+    }
+
+    [CCode (cname = "moonshot_show_ui_rpc")]
+    public static void show_ui ()
+    {
+        Idle.add( () => {
+            parent_app.show();
+            parent_app.explicitly_launched = true;
+            return false;
+        });
     }
 
     [CCode (cname = "moonshot_get_identity_rpc")]

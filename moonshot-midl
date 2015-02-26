@@ -1,0 +1,2 @@
+#!/bin/sh
+"$MIDL_NATIVE" -prefix client "c_" "$@"
