@@ -67,7 +67,7 @@
             <Component Id='Deps' Guid='4668773A-2486-4BF5-9AFE-A6595F1A3EB9'>
               <File Id="MSRPC_MINGW.DLL" Name="msrpc-mingw.dll" Source="bin\msrpc-mingw.dll" />
               <File Id="MSRPC_GLIB2.DLL" Name="msrpc-glib2.dll" Source="bin\msrpc-glib2.dll" />
-              <File Id="LIBMOONSHOT_0.DLL" Name="libmoonshot-0.dll" Source="libmoonshot/.libs/libmoonshot-0.dll" />
+              <File Id="LIBMOONSHOT_1.DLL" Name="libmoonshot-1.dll" Source="libmoonshot/.libs/libmoonshot-1.dll" />
 			  <File Id="LIBGEE_2.DLL" Name="libgee-2.dll" Source="bin\libgee-2.dll" />
             </Component>
 
