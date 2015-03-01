@@ -84,7 +84,9 @@ src_moonshot_webp_CFLAGS = -mconsole
 AM_CPPFLAGS += -DOS_WIN32
 AM_VALAFLAGS += --define=OS_WIN32
 
-noinst_DATA = libmoonshot/libmoonshot.lib
+# this is a gross hack to install the libmoonshot import lib in ${libdir}
+libmoonshotlibdir=${libdir}
+libmoonshotlib_DATA = libmoonshot/libmoonshot.lib
 
 # Build the MSVC lib. The sed hack fixes execution in the case that
 # the MSVC toolchain isn't in the PATH.
