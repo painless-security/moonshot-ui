@@ -68,7 +68,8 @@
               <File Id="MSRPC_MINGW.DLL" Name="msrpc-mingw.dll" Source="bin\msrpc-mingw.dll" />
               <File Id="MSRPC_GLIB2.DLL" Name="msrpc-glib2.dll" Source="bin\msrpc-glib2.dll" />
               <File Id="LIBMOONSHOT_1.DLL" Name="libmoonshot-1.dll" Source="libmoonshot/.libs/libmoonshot-1.dll" />
-			  <File Id="LIBGEE_2.DLL" Name="libgee-2.dll" Source="bin\libgee-2.dll" />
+			        <File Id="LIBGEE_2.DLL" Name="libgee-2.dll" Source="bin\libgee-2.dll" />
+              <File Id="PTHREADGC2.DLL" Name="pthreadGC2.dll" Source="bin\pthreadGC2.dll" />
             </Component>
 
             <!-- Gtk+ runtime - /bin -->
@@ -92,6 +93,7 @@
               <File Id="LIBCAIRO_SCRIPT_INTERPRETER_2.DLL" Name="libcairo-script-interpreter-2.dll" Source="bin\libcairo-script-interpreter-2.dll" />
               <File Id="LIBFONTCONFIG_1.DLL" Name="libfontconfig-1.dll" Source="bin\libfontconfig-1.dll" />
               <File Id="LIBGAILUTIL_18.DLL" Name="libgailutil-18.dll" Source="bin\libgailutil-18.dll" />
+              <File Id="LIBGCC_S_DW2_1.DLL" Name="libgcc_s_dw2-1.dll" Source="bin\libgcc_s_dw2-1.dll" />
               <File Id="LIBGDK_WIN32_2.0_0.DLL" Name="libgdk-win32-2.0-0.dll" Source="bin\libgdk-win32-2.0-0.dll" />
               <File Id="LIBGDK_PIXBUF_2.0_0.DLL" Name="libgdk_pixbuf-2.0-0.dll" Source="bin\libgdk_pixbuf-2.0-0.dll" />
               <File Id="LIBGIO_2.0_0.DLL" Name="libgio-2.0-0.dll" Source="bin\libgio-2.0-0.dll" />
