@@ -249,7 +249,7 @@ installer: moonshot.msi
 
 moonshot.msi: windows/app.wxs windows/config.wxi $(bin_PROGRAMS)
 	"${WIX_CANDLE}" $<
-	"${WIX_LIGHT}" -b ${prefix} -b ${prefix}/mingw -o moonshot.msi app.wixobj
+	"${WIX_LIGHT}" -b ${prefix} -b /usr -b /c/mingw -o moonshot.msi app.wixobj
 
 endif
 
