@@ -242,14 +242,24 @@ icons:
 ## 2. Installer. You must have the Windows Installer XML toolkit version 3.5
 ##    installed in its default path. Note that this requires at least .NET
 ##    runtime with service packs 1 and 2. The installer picks up files from
-##    the build prefix and mingw dir; you must change these if you have them
-##    in different locations I'm afraid.
+##    the prefix, /usr, and /c/mingw directories.
 
 installer: moonshot.msi
 
-moonshot.msi: windows/app.wxs windows/config.wxi $(bin_PROGRAMS)
+moonshot.wixlib: windows/app.wxs windows/config.wxi $(bin_PROGRAMS)
 	"${WIX_CANDLE}" $<
-	"${WIX_LIGHT}" -b ${prefix} -b /usr -b /c/mingw -o moonshot.msi app.wixobj
+	"${WIX_LIT}" -bf -b ${prefix} -b /usr -b /c/mingw -out moonshot.wixlib app.wixobj
+
+moonshot.msi: moonshot.wixlib
+	"${WIX_LIGHT}" -o moonshot.msi moonshot.wixlib
+
+## install moonshot.wixlib in libdir (/usr/local/lib)
+wixlibdir = ${libdir}
+wixlib_DATA = moonshot.wixlib
+
+## install moonshot.msi in bindir (/usr/local/bin)
+installerdir = ${bindir}
+installer_DATA = moonshot.msi
 
 endif
 

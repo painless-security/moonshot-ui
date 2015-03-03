@@ -172,13 +172,15 @@ if test "$win32" = "yes"; then
                [/c/Program\ Files/Windows\ Installer\ XML\ v3.5/bin$PATH_SEPARATOR/c/Program\ Files\ \(x86\)/Windows\ Installer\ XML\ v3.5/bin$PATH_SEPARATOR$PATH])
   AC_PATH_PROG([WIX_LIGHT], [light], no,
                [/c/Program\ Files/Windows\ Installer\ XML\ v3.5/bin$PATH_SEPARATOR/c/Program\ Files\ \(x86\)/Windows\ Installer\ XML\ v3.5/bin$PATH_SEPARATOR$PATH])
+  AC_PATH_PROG([WIX_LIT], [lit], no,
+               [/c/Program\ Files/Windows\ Installer\ XML\ v3.5/bin$PATH_SEPARATOR/c/Program\ Files\ \(x86\)/Windows\ Installer\ XML\ v3.5/bin$PATH_SEPARATOR$PATH])
 
-  if test "$WIX_CANDLE" = "no" || test "$WIX_LIGHT" = "no"; then
+  if test "$WIX_CANDLE" = "no" || test "$WIX_LIGHT" = "no" || test "$WIX_LIT" = "no"; then
      AC_MSG_WARN([
 *** Could not find the Windows Installer XML tools. These are required
-*** for the 'make installer' target. Use the WIX_CANDLE and WIX_LIGHT
-*** environment variables to pass their locations if they are outside
-*** the PATH.])
+*** for the 'make installer' target. Use the WIX_CANDLE, WIX_LIGHT,and
+*** WIX_LIT environment variables to pass their locations if they are
+*** outside the PATH.])
   fi
 fi
 
