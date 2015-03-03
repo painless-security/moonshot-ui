@@ -7,7 +7,7 @@ stamp-h1
 .dirstamp
 po/stamp-po
 po/remove-potcdate.*
-po/moonshot.pot
+po/moonshot-ui.pot
 po/insert-header.sin
 po/*.header
 po/*.sed
@@ -32,10 +32,16 @@ libtool
 src/moonshot-add-dialog.c
 src/moonshot-custom-vbox.c
 src/moonshot-id.c
+src/moonshot-idcard-store.c
 src/moonshot-idcard-widget.c
+src/moonshot-identity-management-view.c
+src/moonshot-identity-manager-app.c
 src/moonshot-identity-request.c
 src/moonshot-identities-manager.c
+src/moonshot-keyring-store.c
+src/moonshot-local-flat-file-store.c
 src/moonshot-password-dialog.c
+src/moonshot-provisioning-common.c
 src/moonshot-server.c
 src/moonshot-utils.c
 src/moonshot-webp-parser.c
@@ -79,6 +85,7 @@ m4/wchar_t.m4
 m4/wint_t.m4
 m4/xsize.m4
 moonshot.msi
+moonshot.wixlib
 moonshot.wixpdb
 po/Makefile.in.in
 moonshot-ui.spec
