@@ -232,7 +232,10 @@ if OS_WIN32
 ##    pulls in the icons required by moonshot and converts svg's to png's (we have
 ##    no svg support built in to Windows Gtk+ right now).
 
-icons:
+BUILT_ICONS = share/icons/avatar-default.png
+
+icons: $(BUILT_ICONS)
+$(BUILT_ICONS) :
 	mkdir -p share/icons
 	cp ${prefix}/share/icons/gnome/48x48/status/avatar-default.png share/icons
 	"${IMAGEMAGICK_CONVERT}" -background none ${prefix}/share/icons/gnome/scalable/actions/edit-clear-symbolic.svg -size 13x13 share/icons/edit-clear-symbolic.png
@@ -246,7 +249,7 @@ icons:
 
 installer: moonshot.msi
 
-moonshot.wixlib: windows/app.wxs windows/config.wxi $(bin_PROGRAMS)
+moonshot.wixlib: windows/app.wxs windows/config.wxi $(bin_PROGRAMS) $(BUILT_ICONS)
 	"${WIX_CANDLE}" $<
 	"${WIX_LIT}" -bf -b ${prefix} -b /usr -b /c/mingw -out moonshot.wixlib app.wixobj
 
