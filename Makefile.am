@@ -78,10 +78,12 @@ src_moonshot_webp_LDFLAGS =
 if OS_WIN32
 
 
+moonshot_LIBS += -lkernel32
+
 src_moonshot_CFLAGS = -mwindows
 src_moonshot_webp_CFLAGS = -mconsole
     
-AM_CPPFLAGS += -DOS_WIN32
+AM_CPPFLAGS += -DWINVER=0x0501 -DOS_WIN32
 AM_VALAFLAGS += --define=OS_WIN32
 
 # this is a gross hack to install the libmoonshot import lib in ${libdir}
