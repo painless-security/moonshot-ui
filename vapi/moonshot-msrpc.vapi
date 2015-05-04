@@ -16,6 +16,9 @@ namespace MoonshotRpcInterface {
         string always_confirm;
     }
 
+    [CCode (cname = "moonshot_attach_console")]
+    public extern uint32 attach_console();
+
     [CCode (cname = "c_moonshot_show_ui_rpc")]
     public extern void show_ui();
 

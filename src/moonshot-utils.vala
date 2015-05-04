@@ -81,12 +81,12 @@ public Gdk.Pixbuf? find_icon (string name, int size)
     }
 }
 
-public extern unowned string GetUserName();
+public extern unowned string MoonshotGetUserName();
 public extern unowned string GetFlatStoreUsersFilePath();
 
 public bool UserForcesFlatFileStore()
 {
-    string username = GetUserName();
+    string username = MoonshotGetUserName();
     string flatstore_users_filename = GetFlatStoreUsersFilePath();
     FileStream flatstore_users = FileStream.open(flatstore_users_filename, "r");
     if (flatstore_users == null) {

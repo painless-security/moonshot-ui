@@ -345,7 +345,10 @@ public class IdentityManagerApp {
 
 static bool explicitly_launched = true;
 static bool use_flat_file_store = false;
+static bool attach_console = false;
 const GLib.OptionEntry[] options = {
+    {"attach-console",0,0,GLib.OptionArg.NONE,
+     ref attach_console,"attach console",null},
     {"dbus-launched",0,GLib.OptionFlags.REVERSE,GLib.OptionArg.NONE,
      ref explicitly_launched,"launch for dbus rpc use",null},
     {"flat-file-store",0,0,GLib.OptionArg.NONE,
@@ -353,6 +356,7 @@ const GLib.OptionEntry[] options = {
     {null}
 };
 
+public extern int moonshot_attach_console();
 
 public static int main(string[] args){
 #if IPC_MSRPC
@@ -392,6 +396,16 @@ public static int main(string[] args){
         Gtk.Settings settings = Gtk.Settings.get_default ();
         settings.set_string_property ("gtk-theme-name", "ms-windows", "moonshot");
         settings.set_long_property ("gtk-menu-images", 0, "moonshot");
+        if (attach_console) {
+            if (moonshot_attach_console() != 0) {
+                stdout.printf(_("Attached console\n"));
+                stdout.flush();
+            }
+        }
+        else {
+            stdout.printf("Standard output\n");
+            stdout.flush();
+        }
 #endif
 
         Intl.bindtextdomain (Config.GETTEXT_PACKAGE, Config.LOCALEDIR);

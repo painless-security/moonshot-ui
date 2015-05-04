@@ -34,8 +34,14 @@
 #include <sys/types.h>
 #include <pwd.h>
 #endif
+#ifdef OS_WIN32
+#include <io.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <windows.h>
+#endif
 
-const char * GetUserName()
+const char * MoonshotGetUserName()
 {
 #ifdef HAVE_GETPWUID
    struct passwd *pwd = getpwuid(getuid());
@@ -49,3 +55,45 @@ const char * GetFlatStoreUsersFilePath()
 {
    return MOONSHOT_FLATSTORE_USERS;
 }
+
+#ifdef OS_WIN32
+static int con_to_std(DWORD std_id, FILE *fp_out)
+{
+    HANDLE con_handle;
+    int fd;
+    FILE *fp;
+    con_handle = GetStdHandle(std_id);
+    if (con_handle == INVALID_HANDLE_VALUE)
+        return 0;
+    fd = _open_osfhandle((intptr_t)con_handle, _O_TEXT);
+    if (fd == -1)
+        return 0;
+    fp = _fdopen(fd, "w" );
+    if (fp == NULL)
+        return 0;
+    *fp_out = *fp;
+    setvbuf(fp_out, NULL, _IONBF, 0 );
+    return 1;
+}
+
+int moonshot_attach_console()
+{
+#if 0
+    if (AttachConsole(ATTACH_PARENT_PROCESS) != 0) {
+        if (con_to_std(STD_OUTPUT_HANDLE, stdout) &&
+            con_to_std(STD_ERROR_HANDLE, stderr)) {
+            return 1;
+        }
+    }
+#endif
+    if (AllocConsole() && AttachConsole(GetCurrentProcessId())) {
+        if (con_to_std(STD_OUTPUT_HANDLE, stdout) &&
+            con_to_std(STD_ERROR_HANDLE, stderr)) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+#endif
+
