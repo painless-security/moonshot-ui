@@ -1,4 +1,5 @@
 # !/bin/sh
+set -v
 autoreconf -f -i
 ./configure
 make
