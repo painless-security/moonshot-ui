@@ -143,7 +143,7 @@ if test "$win32" = "yes"; then
 
   # LIB.EXE from MSVC to build an MSVC-compatible import library.
   AC_PATH_PROG([MSVC_LIB], [lib], no,
-               [/c/Program\ Files/Microsoft\ Visual\ Studio\ 9.0/VC/bin$PATH_SEPARATOR/c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio\ 9.0/VC/bin$PATH_SEPARATOR$PATH])
+               [/c/Program\ Files/Microsoft\ Visual\ Studio\ 10.0/VC/bin$PATH_SEPARATOR/c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio\ 10.0/VC/bin$PATH_SEPARATOR$PATH])
 
   if test "$MSVC_LIB" = "no"; then
      AC_MSG_WARN([
