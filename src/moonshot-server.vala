@@ -34,24 +34,34 @@
 [DBus (name = "org.janet.Moonshot")]
 public class MoonshotServer : Object {
 
+	private static Log4Vala.Logger logger = get_logger("MoonshotServer");
+
+	private string app_name = "Moonshot";
+
     private IdentityManagerApp parent_app;
 
     public MoonshotServer (IdentityManagerApp app)
     {
+		logger.trace("MoonshotServer.<constructor>; app=" + (app == null ? "null" : "non-null"));
         this.parent_app = app;
     }
 
     public bool show_ui()
     {
+		logger.trace("MoonshotServer.show_ui");
+
         if (parent_app.view == null) {
+			stderr.printf(app_name, "show_ui: parent_app.view is null!\n");
+			logger.warn("show_ui: parent_app.view is null!");
             return false;
         }
         parent_app.show();
         parent_app.explicitly_launched = true;
+		logger.trace("MoonshotServer.show_ui: returning true");
         return true;
     }
 
-    public async bool get_identity (string nai,
+    private async bool get_identity (string nai,
                                     string password,
                                     string service,
                                     out string nai_out,
@@ -61,13 +71,18 @@ public class MoonshotServer : Object {
                                     out string subject_name_constraint,
                                     out string subject_alt_name_constraint)
     {
+		logger.trace(@"MoonshotServer.get_identity: nai='$nai'; service='$service'");
+
         var request = new IdentityRequest (parent_app,
                                            nai,
                                            password,
                                            service);
         request.set_callback ((IdentityRequest) => get_identity.callback());
+		logger.trace(@"MoonshotServer.get_identity: Calling request.execute()");
         request.execute ();
+		logger.trace(@"MoonshotServer.get_identity: Back from request.execute()");
         yield;
+		logger.trace(@"MoonshotServer.get_identity: back from yield");
 
         nai_out = "";
         password_out = "";
@@ -103,9 +118,12 @@ public class MoonshotServer : Object {
             if (subject_alt_name_constraint == null)
                 subject_alt_name_constraint = "";
 
+			logger.trace("MoonshotServer.get_identity: returning true");
+
             return true;
         }
 
+		logger.trace("MoonshotServer.get_identity: returning false");
         return false;
     }
 
@@ -116,6 +134,8 @@ public class MoonshotServer : Object {
                                             out string subject_name_constraint,
                                             out string subject_alt_name_constraint)
     {
+		logger.trace("MoonshotServer.get_default_identity");
+
         var request = new IdentityRequest.default (parent_app);
         request.set_callback ((IdentityRequest) => get_default_identity.callback());
         request.execute ();
@@ -151,6 +171,7 @@ public class MoonshotServer : Object {
             if (subject_alt_name_constraint == null)
                 subject_alt_name_constraint = "";
 
+			logger.trace("MoonshotServer.get_default_identity: returning true");
             return true;
         }
 
@@ -290,6 +311,8 @@ public class MoonshotServer : Object {
                                      ref string subject_name_constraint,
                                      ref string subject_alt_name_constraint)
     {
+		logger.trace("(static) get_identity");
+
         bool result = false;
 
         var request = new IdentityRequest (parent_app,
@@ -355,6 +378,8 @@ public class MoonshotServer : Object {
                                              ref string subject_name_constraint,
                                              ref string subject_alt_name_constraint)
     {
+		logger.trace("(static) get_default_identity");
+
         bool result;
 
         var request = new IdentityRequest.default (parent_app);
@@ -428,6 +453,8 @@ public class MoonshotServer : Object {
                                         string     server_cert,
                                         bool       force_flat_file_store)
     {
+		logger.trace("(static) install_id_card");
+
         IdCard idcard = new IdCard ();
         bool success = false;
         Mutex mutex = new Mutex();

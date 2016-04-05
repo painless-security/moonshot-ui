@@ -167,7 +167,6 @@ namespace WebProvisioning
                      size_t             text_len) throws MarkupError
   {
     unowned SList<string> stack = context.get_element_stack ();
-    
     if (text_len < 1)
       return;
     

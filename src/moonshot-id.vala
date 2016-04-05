@@ -71,6 +71,11 @@ public class IdCard : Object
   public string display_name { get; set; default = ""; }
   
   public string username { get; set; default = ""; }
+
+  public IdCard() {
+	  stdout.printf("new IdCard!\n");
+  }
+
 #if GNOME_KEYRING
   private unowned string _password;
   public string password {

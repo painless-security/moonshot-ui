@@ -117,25 +117,26 @@ public class IdentityManagerModel : Object {
                                        out string? candidate)
     {
         if (&candidate != null)
-          candidate = null;
+            candidate = null;
         foreach (IdCard id_card in this.store.get_card_list())
         {
-          if (id_card.display_name == name)
-          {
-            if (&candidate != null)
+            if (id_card.display_name == name)
             {
-              for (int i=0; i<1000; i++)
-              {
-                string tmp = "%s %d".printf (name, i);
-                if (display_name_is_valid (tmp, null))
+                if (&candidate != null)
                 {
-                  candidate = tmp;
-                  break;
+                    for (int i=0; i<1000; i++)
+                    {
+                        string tmp = "%s %d".printf (name, i);
+                        if (display_name_is_valid (tmp, null))
+                        {
+                    
+                            candidate = tmp;
+                            break;
+                        }
+                    }
                 }
-              }
+                return false;
             }
-            return false;
-          }
         }
         return true;
     }

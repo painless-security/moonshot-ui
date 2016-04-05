@@ -33,6 +33,8 @@ using Gee;
 using Gtk;
 
 public class IdentityManagerView : Window {
+	static Log4Vala.Logger logger = get_logger("IdentityManagerView");
+
     private const int WINDOW_WIDTH = 400;
     private const int WINDOW_HEIGHT = 500;
     protected IdentityManagerApp parent_app;
@@ -786,6 +788,7 @@ SUCH DAMAGE.
         catch (Error e)
         {
             stderr.printf ("%s\n", e.message);
+			logger.error("create_ui_manager: Caught error: " + e.message);
         }
         ui_manager.ensure_update ();
     }

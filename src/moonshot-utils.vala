@@ -100,3 +100,14 @@ public bool UserForcesFlatFileStore()
     }
     return false;
 }
+
+static bool logger_is_initialized = false;
+public Log4Vala.Logger get_logger(string name) {
+	if (!logger_is_initialized) {
+		Log4Vala.init("/home/dbreslau/log4vala.conf");
+		logger_is_initialized = true;
+		Log4Vala.Logger.get_logger("utils.get_logger").info("I'm alive!");
+	}
+
+	return Log4Vala.Logger.get_logger(name);
+}
