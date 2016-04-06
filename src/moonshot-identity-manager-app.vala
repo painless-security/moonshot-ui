@@ -52,6 +52,8 @@ public class IdentityManagerApp {
     public bool explicitly_launched;
     public IdentityManagerView view;
     private MoonshotServer ipc_server;
+    private bool name_is_owned;
+    private bool show_requested;
 
 #if OS_MACOS
     public OSXApplication osxApp;
@@ -69,13 +71,23 @@ public class IdentityManagerApp {
 
     private const int WINDOW_WIDTH = 400;
     private const int WINDOW_HEIGHT = 500;
+
+
+	/** If we're successfully registered with DBus, then show the UI. Otherwise, wait until we're registered. */
     public void show() {
-		logger.trace("show()");
-        if (view != null) view.make_visible();
+        logger.trace(@"show(): name_is_owned=$name_is_owned; show_requested=$show_requested");
+        if (name_is_owned) {
+            if (view != null) {
+                view.make_visible();
+            }
+        }
+        else {
+            show_requested = true;
+        }
     }
 
-	// Call this from main() to ensure that the logger is initialized
-	internal IdentityManagerApp.dummy() {}
+    // Call this from main() to ensure that the logger is initialized
+    internal IdentityManagerApp.dummy() {}
 
     public IdentityManagerApp(bool headless, bool use_flat_file_store) {
         use_flat_file_store |= UserForcesFlatFileStore();
@@ -122,6 +134,8 @@ public class IdentityManagerApp {
     }
 
     public void select_identity(IdentityRequest request) {
+        logger.trace("select_identity");
+
         IdCard identity = null;
 
         if (request.select_default)
@@ -228,6 +242,7 @@ public class IdentityManagerApp {
             }
             if (identity == null) {
                 if (request.candidates.length() != 1) {
+                    logger.trace("select_identity: Have %u candidates; user must make selection.".printf(request.candidates.length()));
                     confirm = true;
                 } else {
                     identity = request.candidates.nth_data(0);                    
@@ -246,6 +261,7 @@ public class IdentityManagerApp {
         // callback because we may be being called from a 'yield')
         GLib.Idle.add(
             () => {
+                logger.trace("Idle handler: returning ID to requester");
                 if (view != null) {
                     identity = view.check_add_password(identity, request, model);
                 }
@@ -328,23 +344,48 @@ public class IdentityManagerApp {
     private void init_ipc_server() {
         this.ipc_server = new MoonshotServer(this);
         logger.trace("init_ipc_server: Constructed new MoonshotServer");
+        bool shown = false;
         GLib.Bus.own_name(GLib.BusType.SESSION,
                           "org.janet.Moonshot",
                           GLib.BusNameOwnerFlags.NONE,
                           bus_acquired_cb,
-                          (conn, name) => {logger.trace("init_ipc_server: name_acquired_closure");},
+
+                          // Name acquired callback:
+                          (conn, name) => {
+                              logger.trace(@"init_ipc_server: name_acquired_closure; show_requested=$show_requested");
+
+                              name_is_owned = true;
+
+                              // Now that we know that we own the name, it's safe to show the UI.
+                              if (show_requested) {
+                                  show();
+                                  show_requested = false;
+                              }
+                              shown = true;
+                          },
+
+                          // Name lost callback:
                           (conn, name) => {
                               logger.trace("init_ipc_server: name_lost_closure");
-                              bool shown = false;
+
+                              // This callback usually means that another moonshot is already running.
+                              // But it *might* mean that we lost the name for some other reason
+                              // (though it's unclear to me yet what those reasons are.)
+                              // Clearing these flags seems like a good idea for that case. -- dbreslau
+                              name_is_owned = false;
+                              show_requested = false;
+
                               try {
-                                  IIdentityManager manager = Bus.get_proxy_sync(BusType.SESSION, name, "/org/janet/moonshot");
-                                  shown = manager.show_ui();
+                                  if (!shown) {
+                                      IIdentityManager manager = Bus.get_proxy_sync(BusType.SESSION, name, "/org/janet/moonshot");
+                                      shown = manager.show_ui();
+                                  }
                               } catch (IOError e) {
                                   logger.error("init_ipc_server.name_lost_closure: Caught error: ");
                               }
                               if (!shown) {
-                                  GLib.error("Couldn't own name %s on dbus or show previously launched identity manager.", name);
                                   logger.error("init_ipc_server.name_lost_closure: Couldn't own name %s on dbus or show previously launched identity manager".printf(name));
+                                  GLib.error("Couldn't own name %s on dbus or show previously launched identity manager.", name);
                               } else {
                                   logger.trace("init_ipc_server.name_lost_closure: Showed previously launched identity manager.");
                                   stdout.printf("Showed previously launched identity manager.\n");
@@ -367,7 +408,7 @@ const GLib.OptionEntry[] options = {
 
 
 public static int main(string[] args) {
-	new IdentityManagerApp.dummy().show();
+    new IdentityManagerApp.dummy();
 
 #if IPC_MSRPC
     bool headless = false;
