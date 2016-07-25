@@ -35,7 +35,7 @@ using Gtk;
 public class IdentityManagerView : Window {
     static MoonshotLogger logger = get_logger("IdentityManagerView");
 
-    private const int WINDOW_WIDTH = 400;
+    private const int WINDOW_WIDTH = 700;
     private const int WINDOW_HEIGHT = 500;
     protected IdentityManagerApp parent_app;
     #if OS_MACOS
@@ -44,18 +44,18 @@ public class IdentityManagerView : Window {
     private UIManager ui_manager = new UIManager();
     private Entry search_entry;
     private VBox vbox_right;
-    private VBox login_vbox;
-    private VBox services_vbox;
+    // private VBox login_vbox;
+    // private VBox services_vbox;
     private CustomVBox custom_vbox;
-    private VBox services_internal_vbox;
-    private ScrolledWindow services_vscroll;
-    private Entry issuer_entry;
-    private Entry username_entry;
-    private Entry password_entry;
+    // private VBox services_internal_vbox;
+    // private ScrolledWindow services_vscroll;
+    // private Entry issuer_entry;
+    // private Entry username_entry;
+    // private Entry password_entry;
     private Label prompting_service;
     private Label no_identity_title;
-    private CheckButton remember_checkbutton;
-    private Button update_password_button;
+    // private CheckButton remember_checkbutton;
+    // private Button update_password_button;
 
     private Gtk.ListStore* listmodel;
     private TreeModelFilter filter;
@@ -65,7 +65,7 @@ public class IdentityManagerView : Window {
 
     public GLib.Queue<IdentityRequest> request_queue;
 
-    private HashTable<Gtk.Button, string> service_button_map;
+    // private HashTable<Gtk.Button, string> service_button_map;
 
     private enum Columns
     {
@@ -77,14 +77,8 @@ public class IdentityManagerView : Window {
         N_COLUMNS
     }
 
-    private const string layout =
+    private const string menu_layout =
     "<menubar name='MenuBar'>" +
-    "        <menu name='FileMenu' action='FileMenuAction'>" +
-    "            <menuitem name='AddIdCard' action='AddIdCardAction' />" +
-    "            <separator />" +
-    "            <menuitem name='Quit' action='QuitAction' />" +
-    "        </menu>" +
-    "" +
     "        <menu name='HelpMenu' action='HelpMenuAction'>" +
     "             <menuitem name='About' action='AboutAction' />" +
     "        </menu>" +
@@ -97,7 +91,7 @@ public class IdentityManagerView : Window {
         #endif
         identities_manager = parent_app.model;
         request_queue = new GLib.Queue<IdentityRequest>();
-        service_button_map = new HashTable<Gtk.Button, string>(direct_hash, direct_equal);
+        // service_button_map = new HashTable<Gtk.Button, string>(direct_hash, direct_equal);
         this.title = "Moonshot Identity Selector";
         this.set_position(WindowPosition.CENTER);
         set_default_size(WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -210,7 +204,7 @@ public class IdentityManagerView : Window {
         this.search_entry.set_icon_sensitive(EntryIconPosition.PRIMARY, has_text);
         this.search_entry.set_icon_sensitive(EntryIconPosition.SECONDARY, has_text);
 
-        this.vbox_right.set_visible(false);
+//        this.vbox_right.set_visible(false);
     }
 
     private bool search_entry_key_press_event_cb(Gdk.EventKey e)
@@ -223,38 +217,39 @@ public class IdentityManagerView : Window {
         return false;
     }
 
-    private void update_password_cb()
-    {
-        if (this.custom_vbox.current_idcard != null) {
-            var identity = this.custom_vbox.current_idcard.id_card;
-            var dialog = new AddPasswordDialog(identity, null);
-            var result = dialog.run();
+    // private void update_password_cb()
+    // {
+    //     if (this.custom_vbox.current_idcard != null) {
+    //         var identity = this.custom_vbox.current_idcard.id_card;
+    //         var dialog = new AddPasswordDialog(identity, null);
+    //         var result = dialog.run();
 
-            switch (result) {
-            case ResponseType.OK:
-                identity.password = dialog.password;
-                identity.store_password = dialog.remember;
-                if (dialog.remember)
-                    identity.temporary = false;
-                identity = identities_manager.update_card(identity);
-                break;
-            default:
-                break;
-            }
-            dialog.destroy();
-        }
-    }
+    //         switch (result) {
+    //         case ResponseType.OK:
+    //             identity.password = dialog.password;
+    //             identity.store_password = dialog.remember;
+    //             if (dialog.remember)
+    //                 identity.temporary = false;
+    //             identity = identities_manager.update_card(identity);
+    //             break;
+    //         default:
+    //             break;
+    //         }
+    //         dialog.destroy();
+    //     }
+    // }
 
     private void load_id_cards() {
+        logger.trace("load_id_cards");
+
         string current_idcard_nai = null;
         if (this.custom_vbox.current_idcard != null) {
             current_idcard_nai = custom_vbox.current_idcard.id_card.nai;
             custom_vbox.current_idcard = null;
         }
         var children = this.custom_vbox.get_children();
-        foreach (var id_card_widget in children) {
-            remove_id_card_widget((IdCardWidget)id_card_widget);
-        }   
+
+        custom_vbox.clear();
         this.listmodel->clear();
         LinkedList<IdCard> card_list = identities_manager.get_card_list() ;
         if (card_list == null) {
@@ -265,50 +260,50 @@ public class IdentityManagerView : Window {
             add_id_card_data(id_card);
             IdCardWidget id_card_widget = add_id_card_widget(id_card);
             if (id_card_widget.id_card.nai == current_idcard_nai) {
-                fill_details(id_card_widget.id_card);
+                // fill_details(id_card_widget.id_card);
                 id_card_widget.expand();
             }
         }
     }
     
-    private void fill_details(IdCard id_card)
-    {
-        logger.trace("fill_details: id_card=%s".printf(id_card == null ? "null" : "non-null"));
+    // private void fill_details(IdCard id_card)
+    // {
+    //     logger.trace("fill_details: id_card=%s".printf(id_card == null ? "null" : "non-null"));
 
-        if (id_card != null) {
-            if (id_card.display_name == IdCard.NO_IDENTITY) {
-                logger.trace("fill_details: Displaying title for NO_IDENTITY");
-                login_vbox.hide();
-                no_identity_title.show_all();
-            } else {
-                logger.trace("fill_details: Displaying details for selected card");
-                this.issuer_entry.set_text(id_card.issuer);
-                this.username_entry.set_text(id_card.username);
-                this.password_entry.set_text(id_card.password ?? "");
-                this.remember_checkbutton.active = id_card.store_password;
-                no_identity_title.hide();
-                login_vbox.show_all();              
-            }
+    //     if (id_card != null) {
+    //         if (id_card.display_name == IdCard.NO_IDENTITY) {
+    //             logger.trace("fill_details: Displaying title for NO_IDENTITY");
+    //             login_vbox.hide();
+    //             no_identity_title.show_all();
+    //         } else {
+    //             logger.trace("fill_details: Displaying details for selected card");
+    //             // this.issuer_entry.set_text(id_card.issuer);
+    //             // this.username_entry.set_text(id_card.username);
+    //             // this.password_entry.set_text(id_card.password ?? "");
+    //             this.remember_checkbutton.active = id_card.store_password;
+    //             no_identity_title.hide();
+    //             login_vbox.show_all();              
+    //         }
 
-            fill_services_vbox(id_card);
-        }
-    }
+    //         fill_services_vbox(id_card);
+    //     }
+    // }
 
-    private void show_details(IdCard id_card)
-    {
-        this.vbox_right.set_visible(!vbox_right.get_visible());
+    // private void show_details(IdCard id_card)
+    // {
+    //     this.vbox_right.set_visible(!vbox_right.get_visible());
 
-        if (this.vbox_right.get_visible() == false)
-        {
-            this.resize(WINDOW_WIDTH, WINDOW_HEIGHT);
-        }
-    }
+    //     if (this.vbox_right.get_visible() == false)
+    //     {
+    //         this.resize(WINDOW_WIDTH, WINDOW_HEIGHT);
+    //     }
+    // }
 
-    private void details_identity_cb(IdCardWidget id_card_widget)
-    {
-        fill_details(id_card_widget.id_card);
-        show_details(id_card_widget.id_card);
-    }
+    // private void details_identity_cb(IdCardWidget id_card_widget)
+    // {
+    //     fill_details(id_card_widget.id_card);
+    //     show_details(id_card_widget.id_card);
+    // }
 
     private IdCard get_id_card_data(AddIdentityDialog dialog)
     {
@@ -364,11 +359,11 @@ public class IdentityManagerView : Window {
     {
         var id_card_widget = new IdCardWidget(id_card);
         this.custom_vbox.add_id_card_widget(id_card_widget);
-        id_card_widget.details_id.connect(details_identity_cb);
-        id_card_widget.remove_id.connect(remove_identity_cb);
-        id_card_widget.send_id.connect((w) => send_identity_cb(w.id_card));
+//        id_card_widget.details_id.connect(details_identity_cb);
+//        id_card_widget.remove_id.connect(remove_identity_cb);
+//        id_card_widget.send_id.connect((w) => send_identity_cb(w.id_card));
         id_card_widget.expanded.connect(this.custom_vbox.receive_expanded_event);
-        id_card_widget.expanded.connect((w) => fill_details(w.id_card));
+        // id_card_widget.expanded.connect((w) => fill_details(w.id_card));
         return id_card_widget;
     }
 
@@ -424,7 +419,7 @@ public class IdentityManagerView : Window {
         return false;
     }
 
-    private void add_identity_manual_cb()
+    private void add_identity_cb()
     {
         var dialog = new AddIdentityDialog();
         int result = ResponseType.CANCEL;
@@ -441,27 +436,28 @@ public class IdentityManagerView : Window {
         dialog.destroy();
     }
 
-    private void remove_id_card_widget(IdCardWidget id_card_widget) {
-        this.custom_vbox.remove_id_card_widget(id_card_widget);
+    private void edit_identity_cb()
+    {
+        //!!TODO
     }
 
     private void remove_identity(IdCardWidget id_card_widget)
     {
         var id_card = id_card_widget.id_card;
-        remove_id_card_widget(id_card_widget);
+        this.custom_vbox.remove_id_card_widget(id_card_widget);
 
         this.identities_manager.remove_card(id_card);
     }
 
     private void redraw_id_card_widgets()
     {
+        logger.trace("redraw_id_card_widgets");
+
         TreeIter iter;
         IdCard id_card;
 
         var children = this.custom_vbox.get_children();
-        foreach (var id_card_widget in children) {
-            remove_id_card_widget((IdCardWidget )id_card_widget); //id_card_widget.destroy();
-        }
+        this.custom_vbox.clear();
 
         if (filter.get_iter_first(out iter))
         {
@@ -560,7 +556,7 @@ public class IdentityManagerView : Window {
         return retval;
     }
 
-    public void send_identity_cb(IdCard id)
+    private void send_identity_cb(IdCard id)
     {
         IdCard identity = id;
         return_if_fail(request_queue.length > 0);
@@ -607,99 +603,92 @@ public class IdentityManagerView : Window {
         label.modify_font(font_desc);
     }
 
-    private void fill_services_vbox(IdCard id_card)
-    {
-        logger.trace("fill_services_vbox");
+//     private void fill_services_vbox(IdCard id_card)
+//     {
+//         logger.trace("fill_services_vbox");
 
-        var children = this.services_internal_vbox.get_children();
-        foreach (var widget in children) {
-            services_internal_vbox.remove(widget);
-        }
+//         var children = this.services_internal_vbox.get_children();
+//         foreach (var widget in children) {
+//             services_internal_vbox.remove(widget);
+//         }
 
-        int i = 0;
-        var n_rows = id_card.services.length;
+//         int i = 0;
+//         var n_rows = id_card.services.length;
 
-        var services_table = new Table(n_rows, 2, false);
-        services_table.set_col_spacings(10);
-        services_table.set_row_spacings(10);
-        this.services_internal_vbox.pack_start(services_table, true, false, 0);
+//         var services_table = new Table(n_rows, 2, false);
+//         services_table.set_col_spacings(10);
+//         services_table.set_row_spacings(10);
+//         this.services_internal_vbox.pack_start(services_table, true, false, 0);
         
-        service_button_map.remove_all();
+//         service_button_map.remove_all();
 
-        foreach (string service in id_card.services)
-        {
-            var label = new Label(service);
-            label.set_alignment(0, (float) 0.5);
-#if VALA_0_12
-            var remove_button = new Button.from_stock(Stock.REMOVE);
-#else
-            var remove_button = new Button.from_stock(STOCK_REMOVE);
-#endif
+//         foreach (string service in id_card.services)
+//         {
+//             var label = new Label(service);
+//             label.set_alignment(0, (float) 0.5);
+// #if VALA_0_12
+//             var remove_button = new Button.from_stock(Stock.REMOVE);
+// #else
+//             var remove_button = new Button.from_stock(STOCK_REMOVE);
+// #endif
 
 
-            service_button_map.insert(remove_button, service);
+//             service_button_map.insert(remove_button, service);
             
-            remove_button.clicked.connect((remove_button) =>
-                {
-                    var candidate = service_button_map.lookup(remove_button);
-                    if (candidate == null)
-                        return;
-                    var dialog = new Gtk.MessageDialog(this,
-                                                       Gtk.DialogFlags.DESTROY_WITH_PARENT,
-                                                       Gtk.MessageType.QUESTION,
-                                                       Gtk.ButtonsType.YES_NO,
-                                                       _("Are you sure you want to stop '%s' ID Card from being used with %s?"),
-                                                       custom_vbox.current_idcard.id_card.display_name,
-                                                       candidate);
-                    var ret = dialog.run();
-                    dialog.hide();
+//             remove_button.clicked.connect((remove_button) =>
+//                 {
+//                     var candidate = service_button_map.lookup(remove_button);
+//                     if (candidate == null)
+//                         return;
+//                     var dialog = new Gtk.MessageDialog(this,
+//                                                        Gtk.DialogFlags.DESTROY_WITH_PARENT,
+//                                                        Gtk.MessageType.QUESTION,
+//                                                        Gtk.ButtonsType.YES_NO,
+//                                                        _("Are you sure you want to stop '%s' ID Card from being used with %s?"),
+//                                                        custom_vbox.current_idcard.id_card.display_name,
+//                                                        candidate);
+//                     var ret = dialog.run();
+//                     dialog.hide();
               
-                    if (ret == Gtk.ResponseType.YES)
-                    {
-                        IdCard idcard = custom_vbox.current_idcard.id_card;
-                        if (idcard != null) {
-                            SList<string> services = new SList<string>();
+//                     if (ret == Gtk.ResponseType.YES)
+//                     {
+//                         IdCard idcard = custom_vbox.current_idcard.id_card;
+//                         if (idcard != null) {
+//                             SList<string> services = new SList<string>();
                 
-                            foreach (string srv in idcard.services)
-                            {
-                                if (srv == candidate)
-                                    continue;
-                                services.append(srv);
-                            }
+//                             foreach (string srv in idcard.services)
+//                             {
+//                                 if (srv == candidate)
+//                                     continue;
+//                                 services.append(srv);
+//                             }
                 
-                            idcard.services = new string[services.length()];
-                            for (int j = 0; j < idcard.services.length; j++)
-                            {
-                                idcard.services[j] = services.nth_data(j);
-                            }
+//                             idcard.services = new string[services.length()];
+//                             for (int j = 0; j < idcard.services.length; j++)
+//                             {
+//                                 idcard.services[j] = services.nth_data(j);
+//                             }
                 
-                            identities_manager.update_card(idcard);
-                        }
-                    }
+//                             identities_manager.update_card(idcard);
+//                         }
+//                     }
               
-                });
-            services_table.attach_defaults(label, 0, 1, i, i+1);
-            services_table.attach_defaults(remove_button, 1, 2, i, i+1);
-            i++;
-        }
+//                 });
+//             services_table.attach_defaults(label, 0, 1, i, i+1);
+//             services_table.attach_defaults(remove_button, 1, 2, i, i+1);
+//             i++;
+//         }
 
-        services_vbox.show_all();
-    }
+//         services_vbox.show_all();
+//     }
 
     private void on_about_action()
     {
-        string[] authors = {
-            "Javier Jardón <jjardon@codethink.co.uk>",
-            "Sam Thursfield <samthursfield@codethink.co.uk>",
-            "Alberto Ruiz <alberto.ruiz@codethink.co.uk>",
-            null
-        };
-
-        string copyright = "Copyright 2011 JANET";
+        string copyright = "Copyright 2011, 2016 JANET";
 
         string license =
         """
-Copyright (c) 2011, JANET(UK)
+Copyright (c) 2011, 2016 JANET(UK)
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -737,7 +726,7 @@ SUCH DAMAGE.
                               "version", Config.PACKAGE_VERSION,
                               "license", license,
                               "website-label", _("Visit the Moonshot project web site"),
-                              "authors", authors,
+//                              "authors", authors,
                               "translator-credits", _("translator-credits"),
                               null
             );
@@ -746,33 +735,17 @@ SUCH DAMAGE.
     private Gtk.ActionEntry[] create_actions() {
         Gtk.ActionEntry[] actions = new Gtk.ActionEntry[0];
 
-        Gtk.ActionEntry filemenu = { "FileMenuAction",
-                                     null,
-                                     N_("_File"),
-                                     null, null, null };
-        actions += filemenu;
-        Gtk.ActionEntry add = { "AddIdCardAction",
-                                #if VALA_0_12
-                                Stock.ADD,
-                                #else
-                                STOCK_ADD,
-                                #endif
-                                N_("Add ID Card"),
-                                null,
-                                N_("Add a new ID Card"),
-                                add_identity_manual_cb };
-        actions += add;
-        Gtk.ActionEntry quit = { "QuitAction",
-                                 #if VALA_0_12
-                                 Stock.QUIT,
-                                 #else
-                                 STOCK_QUIT,
-                                 #endif
-                                 N_("Quit"),
-                                 "<control>Q",
-                                 N_("Quit the application"),
-                                 Gtk.main_quit };
-        actions += quit;
+        // Gtk.ActionEntry add = { "AddIdCardAction",
+        //                         #if VALA_0_12
+        //                         Stock.ADD,
+        //                         #else
+        //                         STOCK_ADD,
+        //                         #endif
+        //                         N_("Add ID Card"),
+        //                         null,
+        //                         N_("Add a new ID Card"),
+        //                         add_identity_manual_cb };
+        // actions += add;
 
         Gtk.ActionEntry helpmenu = { "HelpMenuAction",
                                      null,
@@ -802,7 +775,7 @@ SUCH DAMAGE.
         ui_manager.insert_action_group(action_group, 0);
         try
         {
-            ui_manager.add_ui_from_string(layout, -1);
+            ui_manager.add_ui_from_string(menu_layout, -1);
         }
         catch (Error e)
         {
@@ -823,7 +796,7 @@ SUCH DAMAGE.
                                                find_icon_sized("edit-find", Gtk.IconSize.MENU));
 //                                                find_icon_sized("edit-find-symbolic", Gtk.IconSize.MENU));
         this.search_entry.set_icon_tooltip_text(EntryIconPosition.PRIMARY,
-                                                _("Search identity or service"));
+                                                _("Search for an identity or service"));
         this.search_entry.set_icon_sensitive(EntryIconPosition.PRIMARY, false);
 
         this.search_entry.set_icon_from_pixbuf(EntryIconPosition.SECONDARY,
@@ -837,11 +810,13 @@ SUCH DAMAGE.
         this.search_entry.icon_press.connect(search_entry_icon_press_cb);
         this.search_entry.notify["text"].connect(search_entry_text_changed_cb);
         this.search_entry.key_press_event.connect(search_entry_key_press_event_cb);
+        this.search_entry.set_width_chars(30);
 
-        this.custom_vbox = new CustomVBox(this, false, 6);
+
+        this.custom_vbox = new CustomVBox(this, false, 2);
 
         var viewport = new Viewport(null, null);
-        viewport.set_border_width(6);
+        viewport.set_border_width(2);
         viewport.set_shadow_type(ShadowType.NONE);
         viewport.add(custom_vbox);
         var id_scrollwin = new ScrolledWindow(null, null);
@@ -853,8 +828,29 @@ SUCH DAMAGE.
         prompting_service.set_alignment(0, (float )0.5);
 
         var vbox_left = new VBox(false, 0);
-        vbox_left.pack_start(search_entry, false, false, 6);
-        vbox_left.pack_start(id_scrollwin, true, true, 0);
+        // vbox_left.pack_start(search_entry, false, false, 6);
+        // vbox_left.pack_start(id_scrollwin, true, true, 6);
+
+        var search_hbox = new HBox(false, 6);
+        var search_label = new Label(_("Search:"));
+        search_label.set_alignment(1, (float) 0.5);
+        set_atk_relation(search_label, search_entry, Atk.RelationType.LABEL_FOR);
+        search_hbox.pack_end(search_entry, false, false, 0);
+        search_hbox.pack_end(search_label, false, false, 6);
+
+        var full_search_label = new Label(_("Search for an identity or service"));
+        full_search_label.set_alignment(1, 1);
+        var search_vbox = new VBox(false, 4);
+        search_vbox.pack_start(search_hbox, false, false, 0);
+        search_vbox.pack_start(full_search_label, false, false, 0);
+
+        var inner_left_vbox = new VBox(false, 6);
+        inner_left_vbox.pack_start(search_vbox, false, false, 6);
+        inner_left_vbox.pack_start(id_scrollwin, true, true, 0);
+
+        var id_and_button_box = new HBox(false, 6);
+        id_and_button_box.pack_start(inner_left_vbox, true, true, 6);
+        vbox_left.pack_start(id_and_button_box, true, true, 0);
         vbox_left.pack_start(prompting_service, false, false, 6);
         vbox_left.set_size_request(WINDOW_WIDTH, 0);
 
@@ -866,81 +862,100 @@ SUCH DAMAGE.
         var login_vbox_title = new Label(_("Login: "));
         label_make_bold(login_vbox_title);
         login_vbox_title.set_alignment(0, (float) 0.5);
-        var issuer_label = new Label(_("Issuer:"));
-        issuer_label.set_alignment(1, (float) 0.5);
-        this.issuer_entry = new Entry();
-        issuer_entry.set_can_focus(false);
-        var username_label = new Label(_("Username:"));
-        username_label.set_alignment(1, (float) 0.5);
-        this.username_entry = new Entry();
-        username_entry.set_can_focus(false);
-        var password_label = new Label(_("Password:"));
-        password_label.set_alignment(1, (float) 0.5);
-        this.password_entry = new Entry();
-        password_entry.set_invisible_char('*');
-        password_entry.set_visibility(false);
-        password_entry.set_sensitive(false);
-        this.remember_checkbutton = new CheckButton.with_label(_("Remember password"));
-        remember_checkbutton.set_sensitive(false);
-        this.update_password_button = new Button.with_label(_("Update Password"));
-        this.update_password_button.clicked.connect(update_password_cb);
+        // var issuer_label = new Label(_("Issuer:"));
+        // issuer_label.set_alignment(1, (float) 0.5);
+        // this.issuer_entry = new Entry();
+        // issuer_entry.set_can_focus(false);
+        // var username_label = new Label(_("Username:"));
+        // username_label.set_alignment(1, (float) 0.5);
+        // this.username_entry = new Entry();
+        // username_entry.set_can_focus(false);
+        // var password_label = new Label(_("Password:"));
+        // password_label.set_alignment(1, (float) 0.5);
+        // this.password_entry = new Entry();
+        // password_entry.set_invisible_char('*');
+        // password_entry.set_visibility(false);
+        // password_entry.set_sensitive(false);
+        // this.remember_checkbutton = new CheckButton.with_label(_("Remember password"));
+        // remember_checkbutton.set_sensitive(false);
 
-        set_atk_relation(issuer_label, issuer_entry, Atk.RelationType.LABEL_FOR);
-        set_atk_relation(username_label, username_entry, Atk.RelationType.LABEL_FOR);
-        set_atk_relation(password_entry, password_entry, Atk.RelationType.LABEL_FOR);
+        // set_atk_relation(issuer_label, issuer_entry, Atk.RelationType.LABEL_FOR);
+        // set_atk_relation(username_label, username_entry, Atk.RelationType.LABEL_FOR);
+        // set_atk_relation(password_entry, password_entry, Atk.RelationType.LABEL_FOR);
 
-        // Create the login_vbox. This starts off hidden, because the first card we
-        // display, by default, is NO_IDENTITY.
-        var login_table = new Table(5, 2, false);
-        login_table.set_col_spacings(10);
-        login_table.set_row_spacings(10);
-        login_table.attach_defaults(issuer_label, 0, 1, 0, 1);
-        login_table.attach_defaults(issuer_entry, 1, 2, 0, 1);
-        login_table.attach_defaults(username_label, 0, 1, 1, 2);
-        login_table.attach_defaults(username_entry, 1, 2, 1, 2);
-        login_table.attach_defaults(password_label, 0, 1, 2, 3);
-        login_table.attach_defaults(password_entry, 1, 2, 2, 3);
-        login_table.attach_defaults(remember_checkbutton,  1, 2, 3, 4);
-        login_table.attach_defaults(update_password_button, 0, 1, 4, 5);
-        var login_vbox_alignment = new Alignment(0, 0, 0, 0);
-        login_vbox_alignment.set_padding(0, 0, 12, 0);
-        login_vbox_alignment.add(login_table);
-        this.login_vbox = new VBox(false, 6);
-        login_vbox.pack_start(login_vbox_title, false, true, 0);
-        login_vbox.pack_start(login_vbox_alignment, false, true, 0);
-        login_vbox.hide();
+        // // Create the login_vbox. This starts off hidden, because the first card we
+        // // display, by default, is NO_IDENTITY.
+        // var login_table = new Table(5, 2, false);
+        // login_table.set_col_spacings(10);
+        // login_table.set_row_spacings(10);
+        // login_table.attach_defaults(issuer_label, 0, 1, 0, 1);
+        // login_table.attach_defaults(issuer_entry, 1, 2, 0, 1);
+        // login_table.attach_defaults(username_label, 0, 1, 1, 2);
+        // login_table.attach_defaults(username_entry, 1, 2, 1, 2);
+        // login_table.attach_defaults(password_label, 0, 1, 2, 3);
+        // login_table.attach_defaults(password_entry, 1, 2, 2, 3);
+        // login_table.attach_defaults(remember_checkbutton,  1, 2, 3, 4);
+        // login_table.attach_defaults(update_password_button, 0, 1, 4, 5);
+        // var login_vbox_alignment = new Alignment(0, 0, 0, 0);
+        // login_vbox_alignment.set_padding(0, 0, 12, 0);
+        // login_vbox_alignment.add(login_table);
+        // this.login_vbox = new VBox(false, 6);
+        // login_vbox.pack_start(login_vbox_title, false, true, 0);
+        // login_vbox.pack_start(login_vbox_alignment, false, true, 0);
+        // login_vbox.hide();
 
-        var services_vbox_title = new Label(_("Services:"));
-        label_make_bold(services_vbox_title);
-        services_vbox_title.set_alignment(0, (float) 0.5);
+        // var services_vbox_title = new Label(_("Services:"));
+        // label_make_bold(services_vbox_title);
+        // services_vbox_title.set_alignment(0, (float) 0.5);
         
-        this.services_internal_vbox = new VBox(true, 6);
+        // this.services_internal_vbox = new VBox(true, 6);
 
-        var services_vbox_alignment = new Alignment(0, 0, 0, 1);
-        services_vbox_alignment.set_padding(6, 6, 6, 6);
-        services_vbox_alignment.add(services_internal_vbox);
-        services_vscroll = new ScrolledWindow(null, null);
-        services_vscroll.set_policy(PolicyType.NEVER, PolicyType.AUTOMATIC);
-        services_vscroll.set_shadow_type(ShadowType.IN);
-        services_vscroll.add_with_viewport(services_vbox_alignment);
+        // var services_vbox_alignment = new Alignment(0, 0, 0, 1);
+        // services_vbox_alignment.set_padding(6, 6, 6, 6);
+        // services_vbox_alignment.add(services_internal_vbox);
+        // services_vscroll = new ScrolledWindow(null, null);
+        // services_vscroll.set_policy(PolicyType.NEVER, PolicyType.AUTOMATIC);
+        // services_vscroll.set_shadow_type(ShadowType.IN);
+        // services_vscroll.add_with_viewport(services_vbox_alignment);
 
-        services_vbox = new VBox(false, 6);
-        this.vbox_right = new VBox(false, 18);
-        services_vbox.pack_start(services_vbox_title, false, false, 0);
-        services_vbox.pack_start(services_vscroll, true, true, 0);
+        // services_vbox = new VBox(false, 6);
+        this.vbox_right = new VBox(false, 6);
+        // services_vbox.pack_start(services_vbox_title, false, false, 0);
+        // services_vbox.pack_start(services_vscroll, true, true, 0);
 
-        vbox_right.pack_start(no_identity_title, true, false, 0);
-        vbox_right.pack_start(login_vbox, false, false, 0);
-        vbox_right.pack_start(services_vbox, true, true, 0);
+        // vbox_right.pack_start(no_identity_title, true, false, 0);
+        // vbox_right.pack_start(login_vbox, false, false, 0);
+        // vbox_right.pack_start(services_vbox, true, true, 0);
 
-        var hbox = new HBox(false, 12);
-        hbox.pack_start(vbox_left, false, false, 0);
-        hbox.pack_start(vbox_right, true, true, 0);
+        var add_button = new Button.with_label(_("Add"));
+        add_button.clicked.connect((w) => {add_identity_cb();});
 
+        var edit_button = new Button.with_label(_("Edit"));
+        edit_button.clicked.connect((w) => {edit_identity_cb();});
+
+        var remove_button = new Button.with_label(_("Remove"));
+        remove_button.clicked.connect((w) => {remove_identity_cb(custom_vbox.current_idcard);});
+
+        var send_button = new Button.with_label(_("Send"));
+        send_button.clicked.connect((w) => {send_identity_cb(custom_vbox.current_idcard.id_card);});
+
+
+        var empty_box = new VBox(false, 0);
+        empty_box.set_size_request(0, 0);
+        vbox_right.pack_start(empty_box, false, false, 14);
+        vbox_right.pack_start(add_button, false, false, 6);
+        vbox_right.pack_start(edit_button, false, false, 6);
+        vbox_right.pack_start(remove_button, false, false, 6);
+        vbox_right.pack_start(send_button, false, false, 24);
+
+        //var hbox = new HBox(false, 12);
+        // hbox.pack_start(vbox_left, true, true, 0);
+        // hbox.pack_start(vbox_right, false, false, 0);
+        id_and_button_box.pack_start(vbox_right, false, false, 0);
         var main_vbox = new VBox(false, 0);
         main_vbox.set_border_width(12);
 
-        #if OS_MACOS
+#if OS_MACOS
         // hide the  File | Quit menu item which is now on the Mac Menu
         Gtk.Widget quit_item =  this.ui_manager.get_widget("/MenuBar/FileMenu/Quit");
         quit_item.hide();
@@ -949,15 +964,14 @@ SUCH DAMAGE.
         osxApp.set_menu_bar(menushell);
         osxApp.set_use_quartz_accelerators(true);
         osxApp.sync_menu_bar();
-        osxApp.ready(); 
+        osxApp.ready();
 #else
         var menubar = this.ui_manager.get_widget("/MenuBar");
         main_vbox.pack_start(menubar, false, false, 0);
 #endif
-        main_vbox.pack_start(hbox, true, true, 0);
+        main_vbox.pack_start(vbox_left, true, true, 0);
         add(main_vbox);
         main_vbox.show_all();
-        this.vbox_right.hide();
     } 
 
     private void set_atk_name_description(Widget widget, string name, string description)

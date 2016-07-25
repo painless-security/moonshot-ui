@@ -36,17 +36,23 @@ class IdCardWidget : Box
     static MoonshotLogger logger = get_logger("IdCardWidget");
 
     public IdCard id_card { get; set; default = null; }
-
     private VBox main_vbox;
     private HBox table;
-    public Button delete_button { get; private set; default = null; }
-    public Button details_button { get; private set; default = null; }
-    public Button send_button { get; private set; default = null; }
+    // public Button delete_button { get; private set; default = null; }
+    // public Button details_button { get; private set; default = null; }
+    // public Button send_button { get; private set; default = null; }
 //    private HButtonBox hbutton_box;
     private EventBox event_box;
     private bool   is_selected = false;
     
     private Label label;
+
+    internal int _position;
+    internal int position {
+        get {return _position;}
+        set {_position = value; set_idcard_color();}
+        default = 0;
+    }
 
     public signal void expanded();
     public signal void remove_id();
@@ -101,18 +107,25 @@ class IdCardWidget : Box
     {
         var color = Gdk.Color();
 
-        if (!is_selected)
+        if (is_selected)
         {
-            color.red = 65535;
-            color.green = 65535;
-            color.blue = 65535;
+                color.red = 0xd9 << 8;
+                color.green = 0xf7 << 8;
+                color.blue = 65535;
         }
-        else
-        {
+        else {
+            logger.trace("set_idcard_color: position=" + position.to_string());
+            if (position % 2 == 0)
+            {
+                color.red = color.green = color.blue = 0xf2 << 8;
+            }
+            else
+            {
+                color.red = 65535;
+                color.green = 65535;
+                color.blue = 65535;
 
-            color.red = 0xd9 << 8;
-            color.green = 0xf7 << 8;
-            color.blue = 65535;
+            }
         }
         var state = this.get_state();
         this.event_box.modify_bg(state, color);
@@ -161,21 +174,21 @@ class IdCardWidget : Box
         table.pack_start(image, false, false, 0);
         table.pack_start(label, true, true, 0);
 
-        this.delete_button = new Button.with_label(_("Delete"));
-        this.details_button = new Button.with_label(_("View details"));
-        this.send_button = new Button.with_label(_("Send"));
-        set_atk_name_description(delete_button, _("Delete"), _("Delete this ID Card"));
-        set_atk_name_description(details_button, _("Details"), _("View the details of this ID Card"));
-        set_atk_name_description(send_button, _("Send"), _("Send this ID Card"));
+        // this.delete_button = new Button.with_label(_("Delete"));
+        // this.details_button = new Button.with_label(_("View details"));
+        // this.send_button = new Button.with_label(_("Send"));
+        // set_atk_name_description(delete_button, _("Delete"), _("Delete this ID Card"));
+        // set_atk_name_description(details_button, _("Details"), _("View the details of this ID Card"));
+        // set_atk_name_description(send_button, _("Send"), _("Send this ID Card"));
         // this.hbutton_box = new HButtonBox();
         // hbutton_box.pack_end(delete_button);
         // hbutton_box.pack_end(details_button);
         // hbutton_box.pack_end(send_button);
-        send_button.set_sensitive(false);
+        // send_button.set_sensitive(false);
 
-        delete_button.clicked.connect(delete_button_cb);
-        details_button.clicked.connect(details_button_cb);
-        send_button.clicked.connect(send_button_cb);
+        // delete_button.clicked.connect(delete_button_cb);
+        // details_button.clicked.connect(details_button_cb);
+        // send_button.clicked.connect(send_button_cb);
 
         this.main_vbox = new VBox(false, 12);
         main_vbox.pack_start(table, true, true, 0);
@@ -185,6 +198,7 @@ class IdCardWidget : Box
         event_box = new EventBox();
         event_box.add(main_vbox);
         event_box.button_press_event.connect(button_press_cb);
+        event_box.set_visible(false);
         this.pack_start(event_box, true, true);
 
         this.show_all();
@@ -193,11 +207,22 @@ class IdCardWidget : Box
         set_idcard_color();
     }
 
-    private void set_atk_name_description(Widget widget, string name, string description)
-    {
-        var atk_widget = widget.get_accessible();
+    // private void set_atk_name_description(Widget widget, string name, string description)
+    // {
+    //     if (widget == null)
+    //     {
+    //         logger.error("set_atk_name_description: widget is null for name=" + name + "; description=" + description);
+    //         return;
+    //     }
 
-        atk_widget.set_name(name);
-        atk_widget.set_description(description);
-    }
+    //     var atk_widget = widget.get_accessible();
+
+    //     if (atk_widget == null)
+    //     {
+    //         logger.error("set_atk_name_description: atk_widget is null for name=" + name + "; description=" + description);
+    //         return;
+    //     }
+    //     atk_widget.set_name(name);
+    //     atk_widget.set_description(description);
+    // }
 }

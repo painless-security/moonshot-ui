@@ -69,10 +69,6 @@ public class IdentityManagerApp {
     }
 #endif
 
-    private const int WINDOW_WIDTH = 400;
-    private const int WINDOW_HEIGHT = 500;
-
-
     /** If we're successfully registered with DBus, then show the UI. Otherwise, wait until we're registered. */
     public void show() {
         if (name_is_owned) {

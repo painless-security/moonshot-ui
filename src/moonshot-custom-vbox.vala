@@ -33,9 +33,11 @@ using Gtk;
 
 class CustomVBox : VBox
 {
+    static MoonshotLogger logger = get_logger("CustomVBox");
     public IdCardWidget current_idcard { get; set; default = null; }
     private IdentityManagerView main_window; 
-
+    int next_pos = 0;
+    
     public CustomVBox(IdentityManagerView window, bool homogeneous, int spacing)
     {
         main_window = window;
@@ -53,18 +55,44 @@ class CustomVBox : VBox
         }
         current_idcard = id_card_widget;
         
-        if (current_idcard != null && main_window.request_queue.length > 0)
-            current_idcard.send_button.set_sensitive(true);
+        // if (current_idcard != null && main_window.request_queue.length > 0)
+        //     current_idcard.send_button.set_sensitive(true);
         check_resize();
     }
 
     public void add_id_card_widget(IdCardWidget id_card_widget)
     {
         pack_start(id_card_widget, false, false);
+        id_card_widget.position = next_pos++;
+        logger.trace("add_id_card_widget: Added idcard at position " + id_card_widget.position.to_string());
     }
 
     public void remove_id_card_widget(IdCardWidget id_card_widget)
     {
+        logger.trace("remove_id_card_widget");
+
         remove(id_card_widget);
+
+        // Caller will eventually clear the list, re-setting all positions. I hope.
+
+        // var list = get_children();
+        // next_pos = 0;
+        // foreach (Widget id_card in list)
+        // {
+        //     id_card_widget.position = next_pos++;
+        // }
     }
+
+    internal void clear()
+    {
+        logger.trace("clear");
+
+        var children = get_children();
+        foreach (var id_card_widget in children) {
+            remove_id_card_widget((IdCardWidget) id_card_widget);
+        }
+
+        next_pos = 0;
+   }
+    
 }
