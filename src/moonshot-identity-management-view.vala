@@ -265,20 +265,17 @@ public class IdentityManagerView : Window {
             add_id_card_data(id_card);
             IdCardWidget id_card_widget = add_id_card_widget(id_card);
             if (id_card_widget.id_card.nai == current_idcard_nai) {
-                fill_details(id_card_widget);
+                fill_details(id_card_widget.id_card);
                 id_card_widget.expand();
             }
         }
-        if (custom_vbox.current_idcard == null)
-            fill_details(null);
     }
     
-    private void fill_details(IdCardWidget? id_card_widget)
+    private void fill_details(IdCard id_card)
     {
-        logger.trace("fill_details: id_card_widget=%s".printf(id_card_widget == null ? "null" : "non-null"));
+        logger.trace("fill_details: id_card=%s".printf(id_card == null ? "null" : "non-null"));
 
-        if (id_card_widget != null) {
-            var id_card = id_card_widget.id_card;
+        if (id_card != null) {
             if (id_card.display_name == IdCard.NO_IDENTITY) {
                 logger.trace("fill_details: Displaying title for NO_IDENTITY");
                 login_vbox.hide();
@@ -293,7 +290,7 @@ public class IdentityManagerView : Window {
                 login_vbox.show_all();              
             }
 
-            fill_services_vbox(id_card_widget.id_card);
+            fill_services_vbox(id_card);
         }
     }
 
@@ -309,7 +306,7 @@ public class IdentityManagerView : Window {
 
     private void details_identity_cb(IdCardWidget id_card_widget)
     {
-        fill_details(id_card_widget);
+        fill_details(id_card_widget.id_card);
         show_details(id_card_widget.id_card);
     }
 
@@ -371,7 +368,7 @@ public class IdentityManagerView : Window {
         id_card_widget.remove_id.connect(remove_identity_cb);
         id_card_widget.send_id.connect((w) => send_identity_cb(w.id_card));
         id_card_widget.expanded.connect(this.custom_vbox.receive_expanded_event);
-        id_card_widget.expanded.connect(fill_details);
+        id_card_widget.expanded.connect((w) => fill_details(w.id_card));
         return id_card_widget;
     }
 
