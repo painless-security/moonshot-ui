@@ -56,11 +56,13 @@ public class IdentityManagerView : Window {
     private Label no_identity_title;
     // private CheckButton remember_checkbutton;
     // private Button update_password_button;
+    private Button edit_button;
+    private Button remove_button;
 
     private Gtk.ListStore* listmodel;
     private TreeModelFilter filter;
 
-    public IdentityManagerModel identities_manager;
+    internal IdentityManagerModel identities_manager;
     private unowned SList<IdCard>    candidates;
 
     public GLib.Queue<IdentityRequest> request_queue;
@@ -305,10 +307,8 @@ public class IdentityManagerView : Window {
     //     show_details(id_card_widget.id_card);
     // }
 
-    private IdCard get_id_card_data(AddIdentityDialog dialog)
+    private IdCard update_id_card_data(IdentityDialog dialog, IdCard id_card)
     {
-        var id_card = new IdCard();
-
         id_card.display_name = dialog.display_name;
         id_card.issuer = dialog.issuer;
         id_card.username = dialog.username;
@@ -362,9 +362,16 @@ public class IdentityManagerView : Window {
 //        id_card_widget.details_id.connect(details_identity_cb);
 //        id_card_widget.remove_id.connect(remove_identity_cb);
 //        id_card_widget.send_id.connect((w) => send_identity_cb(w.id_card));
-        id_card_widget.expanded.connect(this.custom_vbox.receive_expanded_event);
+        id_card_widget.expanded.connect(this.widget_selected_cb);
         // id_card_widget.expanded.connect((w) => fill_details(w.id_card));
         return id_card_widget;
+    }
+
+    private void widget_selected_cb(IdCardWidget id_card_widget)
+    {
+        remove_button.set_sensitive(true);
+        this.edit_button.set_sensitive(true);
+        this.custom_vbox.receive_expanded_event(id_card_widget);
     }
 
     public bool add_identity(IdCard id_card, bool force_flat_file_store)
@@ -421,14 +428,14 @@ public class IdentityManagerView : Window {
 
     private void add_identity_cb()
     {
-        var dialog = new AddIdentityDialog();
+        var dialog = new IdentityDialog(this);
         int result = ResponseType.CANCEL;
         while (!dialog.complete)
             result = dialog.run();
 
         switch (result) {
         case ResponseType.OK:
-            this.identities_manager.add_card(get_id_card_data(dialog), false);
+            this.identities_manager.add_card(update_id_card_data(dialog, new IdCard()), false);
             break;
         default:
             break;
@@ -436,9 +443,21 @@ public class IdentityManagerView : Window {
         dialog.destroy();
     }
 
-    private void edit_identity_cb()
+    private void edit_identity_cb(IdCard card)
     {
-        //!!TODO
+        var dialog = new IdentityDialog.with_idcard(card, _("Edit Identity"), this);
+        int result = ResponseType.CANCEL;
+        while (!dialog.complete)
+            result = dialog.run();
+
+        switch (result) {
+        case ResponseType.OK:
+            this.identities_manager.update_card(update_id_card_data(dialog, card));
+            break;
+        default:
+            break;
+        }
+        dialog.destroy();
     }
 
     private void remove_identity(IdCardWidget id_card_widget)
@@ -447,6 +466,10 @@ public class IdentityManagerView : Window {
         this.custom_vbox.remove_id_card_widget(id_card_widget);
 
         this.identities_manager.remove_card(id_card);
+
+        // Nothing is selected, so disable edit and remove buttons
+        this.edit_button.set_sensitive(false);
+        this.remove_button.set_sensitive(false);
     }
 
     private void redraw_id_card_widgets()
@@ -589,19 +612,19 @@ public class IdentityManagerView : Window {
         request.return_identity(identity);
     }
 
-    private void label_make_bold(Label label)
-    {
-        var font_desc = new Pango.FontDescription();
+    // private void label_make_bold(Label label)
+    // {
+    //     var font_desc = new Pango.FontDescription();
 
-        font_desc.set_weight(Pango.Weight.BOLD);
+    //     font_desc.set_weight(Pango.Weight.BOLD);
 
-        /* This will only affect the weight of the font, the rest is
-         * from the current state of the widget, which comes from the
-         * theme or user prefs, since the font desc only has the
-         * weight flag turned on.
-         */
-        label.modify_font(font_desc);
-    }
+    //     /* This will only affect the weight of the font, the rest is
+    //      * from the current state of the widget, which comes from the
+    //      * theme or user prefs, since the font desc only has the
+    //      * weight flag turned on.
+    //      */
+    //     label.modify_font(font_desc);
+    // }
 
 //     private void fill_services_vbox(IdCard id_card)
 //     {
@@ -859,9 +882,9 @@ SUCH DAMAGE.
         no_identity_title.set_line_wrap(true);
         no_identity_title.show();
 
-        var login_vbox_title = new Label(_("Login: "));
-        label_make_bold(login_vbox_title);
-        login_vbox_title.set_alignment(0, (float) 0.5);
+        // var login_vbox_title = new Label(_("Login: "));
+        // label_make_bold(login_vbox_title);
+        // login_vbox_title.set_alignment(0, (float) 0.5);
         // var issuer_label = new Label(_("Issuer:"));
         // issuer_label.set_alignment(1, (float) 0.5);
         // this.issuer_entry = new Entry();
@@ -930,15 +953,17 @@ SUCH DAMAGE.
         var add_button = new Button.with_label(_("Add"));
         add_button.clicked.connect((w) => {add_identity_cb();});
 
-        var edit_button = new Button.with_label(_("Edit"));
-        edit_button.clicked.connect((w) => {edit_identity_cb();});
+        this.edit_button = new Button.with_label(_("Edit"));
+        edit_button.clicked.connect((w) => {edit_identity_cb(custom_vbox.current_idcard.id_card);});
+        edit_button.set_sensitive(false);
 
-        var remove_button = new Button.with_label(_("Remove"));
+        this.remove_button = new Button.with_label(_("Remove"));
         remove_button.clicked.connect((w) => {remove_identity_cb(custom_vbox.current_idcard);});
+        remove_button.set_sensitive(false);
 
         var send_button = new Button.with_label(_("Send"));
         send_button.clicked.connect((w) => {send_identity_cb(custom_vbox.current_idcard.id_card);});
-
+        send_button.set_visible(false);
 
         var empty_box = new VBox(false, 0);
         empty_box.set_size_request(0, 0);
