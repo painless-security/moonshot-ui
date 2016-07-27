@@ -59,7 +59,7 @@ src_moonshot_SOURCES = \
         src/moonshot-keyring-store.vala \
         src/moonshot-idcard-store.vala \
         src/moonshot-id.vala \
-        src/moonshot-add-dialog.vala \
+        src/moonshot-identity-dialog.vala \
         src/moonshot-idcard-widget.vala \
         src/moonshot-custom-vbox.vala \
         src/moonshot-identities-manager.vala \
