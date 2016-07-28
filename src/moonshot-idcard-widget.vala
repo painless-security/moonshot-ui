@@ -47,11 +47,10 @@ class IdCardWidget : Box
     
     private Label label;
 
-    internal int _position;
+    internal int _position = 0;
     internal int position {
         get {return _position;}
         set {_position = value; set_idcard_color();}
-        default = 0;
     }
 
     public signal void expanded();
