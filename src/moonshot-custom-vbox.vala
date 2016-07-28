@@ -55,8 +55,6 @@ class CustomVBox : VBox
         }
         current_idcard = id_card_widget;
         
-        // if (current_idcard != null && main_window.request_queue.length > 0)
-        //     current_idcard.send_button.set_sensitive(true);
         check_resize();
     }
 

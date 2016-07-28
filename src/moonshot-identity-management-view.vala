@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014, JANET(UK)
+ * Copyright (c) 2011-2016, JANET(UK)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,21 +44,14 @@ public class IdentityManagerView : Window {
     private UIManager ui_manager = new UIManager();
     private Entry search_entry;
     private VBox vbox_right;
-    // private VBox login_vbox;
-    // private VBox services_vbox;
     private CustomVBox custom_vbox;
-    // private VBox services_internal_vbox;
-    // private ScrolledWindow services_vscroll;
-    // private Entry issuer_entry;
-    // private Entry username_entry;
-    // private Entry password_entry;
     private Label prompting_service;
     private Label no_identity_title;
-    // private CheckButton remember_checkbutton;
-    // private Button update_password_button;
     private Button edit_button;
     private Button remove_button;
 
+    private Button send_button;
+    
     private Gtk.ListStore* listmodel;
     private TreeModelFilter filter;
 
@@ -66,8 +59,6 @@ public class IdentityManagerView : Window {
     private unowned SList<IdCard>    candidates;
 
     public GLib.Queue<IdentityRequest> request_queue;
-
-    // private HashTable<Gtk.Button, string> service_button_map;
 
     private enum Columns
     {
@@ -93,7 +84,6 @@ public class IdentityManagerView : Window {
         #endif
         identities_manager = parent_app.model;
         request_queue = new GLib.Queue<IdentityRequest>();
-        // service_button_map = new HashTable<Gtk.Button, string>(direct_hash, direct_equal);
         this.title = "Moonshot Identity Selector";
         this.set_position(WindowPosition.CENTER);
         set_default_size(WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -205,8 +195,6 @@ public class IdentityManagerView : Window {
         var has_text = this.search_entry.get_text_length() > 0;
         this.search_entry.set_icon_sensitive(EntryIconPosition.PRIMARY, has_text);
         this.search_entry.set_icon_sensitive(EntryIconPosition.SECONDARY, has_text);
-
-//        this.vbox_right.set_visible(false);
     }
 
     private bool search_entry_key_press_event_cb(Gdk.EventKey e)
@@ -218,28 +206,6 @@ public class IdentityManagerView : Window {
         // text entry functionality needs to see it too.
         return false;
     }
-
-    // private void update_password_cb()
-    // {
-    //     if (this.custom_vbox.current_idcard != null) {
-    //         var identity = this.custom_vbox.current_idcard.id_card;
-    //         var dialog = new AddPasswordDialog(identity, null);
-    //         var result = dialog.run();
-
-    //         switch (result) {
-    //         case ResponseType.OK:
-    //             identity.password = dialog.password;
-    //             identity.store_password = dialog.remember;
-    //             if (dialog.remember)
-    //                 identity.temporary = false;
-    //             identity = identities_manager.update_card(identity);
-    //             break;
-    //         default:
-    //             break;
-    //         }
-    //         dialog.destroy();
-    //     }
-    // }
 
     private void load_id_cards() {
         logger.trace("load_id_cards");
@@ -268,45 +234,6 @@ public class IdentityManagerView : Window {
         }
     }
     
-    // private void fill_details(IdCard id_card)
-    // {
-    //     logger.trace("fill_details: id_card=%s".printf(id_card == null ? "null" : "non-null"));
-
-    //     if (id_card != null) {
-    //         if (id_card.display_name == IdCard.NO_IDENTITY) {
-    //             logger.trace("fill_details: Displaying title for NO_IDENTITY");
-    //             login_vbox.hide();
-    //             no_identity_title.show_all();
-    //         } else {
-    //             logger.trace("fill_details: Displaying details for selected card");
-    //             // this.issuer_entry.set_text(id_card.issuer);
-    //             // this.username_entry.set_text(id_card.username);
-    //             // this.password_entry.set_text(id_card.password ?? "");
-    //             this.remember_checkbutton.active = id_card.store_password;
-    //             no_identity_title.hide();
-    //             login_vbox.show_all();              
-    //         }
-
-    //         fill_services_vbox(id_card);
-    //     }
-    // }
-
-    // private void show_details(IdCard id_card)
-    // {
-    //     this.vbox_right.set_visible(!vbox_right.get_visible());
-
-    //     if (this.vbox_right.get_visible() == false)
-    //     {
-    //         this.resize(WINDOW_WIDTH, WINDOW_HEIGHT);
-    //     }
-    // }
-
-    // private void details_identity_cb(IdCardWidget id_card_widget)
-    // {
-    //     fill_details(id_card_widget.id_card);
-    //     show_details(id_card_widget.id_card);
-    // }
-
     private IdCard update_id_card_data(IdentityDialog dialog, IdCard id_card)
     {
         id_card.display_name = dialog.display_name;
@@ -359,19 +286,18 @@ public class IdentityManagerView : Window {
     {
         var id_card_widget = new IdCardWidget(id_card);
         this.custom_vbox.add_id_card_widget(id_card_widget);
-//        id_card_widget.details_id.connect(details_identity_cb);
-//        id_card_widget.remove_id.connect(remove_identity_cb);
-//        id_card_widget.send_id.connect((w) => send_identity_cb(w.id_card));
         id_card_widget.expanded.connect(this.widget_selected_cb);
-        // id_card_widget.expanded.connect((w) => fill_details(w.id_card));
         return id_card_widget;
     }
 
     private void widget_selected_cb(IdCardWidget id_card_widget)
     {
-        remove_button.set_sensitive(true);
+        this.remove_button.set_sensitive(true);
         this.edit_button.set_sensitive(true);
         this.custom_vbox.receive_expanded_event(id_card_widget);
+
+        if (main_window.request_queue.length > 0)
+             this.send_button.set_sensitive(true);
     }
 
     public bool add_identity(IdCard id_card, bool force_flat_file_store)
@@ -467,9 +393,10 @@ public class IdentityManagerView : Window {
 
         this.identities_manager.remove_card(id_card);
 
-        // Nothing is selected, so disable edit and remove buttons
+        // Nothing is selected, so disable buttons
         this.edit_button.set_sensitive(false);
         this.remove_button.set_sensitive(false);
+        this.send_button.set_sensitive(false);
     }
 
     private void redraw_id_card_widgets()
@@ -626,85 +553,6 @@ public class IdentityManagerView : Window {
     //     label.modify_font(font_desc);
     // }
 
-//     private void fill_services_vbox(IdCard id_card)
-//     {
-//         logger.trace("fill_services_vbox");
-
-//         var children = this.services_internal_vbox.get_children();
-//         foreach (var widget in children) {
-//             services_internal_vbox.remove(widget);
-//         }
-
-//         int i = 0;
-//         var n_rows = id_card.services.length;
-
-//         var services_table = new Table(n_rows, 2, false);
-//         services_table.set_col_spacings(10);
-//         services_table.set_row_spacings(10);
-//         this.services_internal_vbox.pack_start(services_table, true, false, 0);
-        
-//         service_button_map.remove_all();
-
-//         foreach (string service in id_card.services)
-//         {
-//             var label = new Label(service);
-//             label.set_alignment(0, (float) 0.5);
-// #if VALA_0_12
-//             var remove_button = new Button.from_stock(Stock.REMOVE);
-// #else
-//             var remove_button = new Button.from_stock(STOCK_REMOVE);
-// #endif
-
-
-//             service_button_map.insert(remove_button, service);
-            
-//             remove_button.clicked.connect((remove_button) =>
-//                 {
-//                     var candidate = service_button_map.lookup(remove_button);
-//                     if (candidate == null)
-//                         return;
-//                     var dialog = new Gtk.MessageDialog(this,
-//                                                        Gtk.DialogFlags.DESTROY_WITH_PARENT,
-//                                                        Gtk.MessageType.QUESTION,
-//                                                        Gtk.ButtonsType.YES_NO,
-//                                                        _("Are you sure you want to stop '%s' ID Card from being used with %s?"),
-//                                                        custom_vbox.current_idcard.id_card.display_name,
-//                                                        candidate);
-//                     var ret = dialog.run();
-//                     dialog.hide();
-              
-//                     if (ret == Gtk.ResponseType.YES)
-//                     {
-//                         IdCard idcard = custom_vbox.current_idcard.id_card;
-//                         if (idcard != null) {
-//                             SList<string> services = new SList<string>();
-                
-//                             foreach (string srv in idcard.services)
-//                             {
-//                                 if (srv == candidate)
-//                                     continue;
-//                                 services.append(srv);
-//                             }
-                
-//                             idcard.services = new string[services.length()];
-//                             for (int j = 0; j < idcard.services.length; j++)
-//                             {
-//                                 idcard.services[j] = services.nth_data(j);
-//                             }
-                
-//                             identities_manager.update_card(idcard);
-//                         }
-//                     }
-              
-//                 });
-//             services_table.attach_defaults(label, 0, 1, i, i+1);
-//             services_table.attach_defaults(remove_button, 1, 2, i, i+1);
-//             i++;
-//         }
-
-//         services_vbox.show_all();
-//     }
-
     private void on_about_action()
     {
         string copyright = "Copyright 2011, 2016 JANET";
@@ -749,7 +597,6 @@ SUCH DAMAGE.
                               "version", Config.PACKAGE_VERSION,
                               "license", license,
                               "website-label", _("Visit the Moonshot project web site"),
-//                              "authors", authors,
                               "translator-credits", _("translator-credits"),
                               null
             );
@@ -757,18 +604,6 @@ SUCH DAMAGE.
 
     private Gtk.ActionEntry[] create_actions() {
         Gtk.ActionEntry[] actions = new Gtk.ActionEntry[0];
-
-        // Gtk.ActionEntry add = { "AddIdCardAction",
-        //                         #if VALA_0_12
-        //                         Stock.ADD,
-        //                         #else
-        //                         STOCK_ADD,
-        //                         #endif
-        //                         N_("Add ID Card"),
-        //                         null,
-        //                         N_("Add a new ID Card"),
-        //                         add_identity_manual_cb };
-        // actions += add;
 
         Gtk.ActionEntry helpmenu = { "HelpMenuAction",
                                      null,
@@ -817,14 +652,12 @@ SUCH DAMAGE.
         set_atk_name_description(search_entry, _("Search entry"), _("Search for a specific ID Card"));
         this.search_entry.set_icon_from_pixbuf(EntryIconPosition.PRIMARY,
                                                find_icon_sized("edit-find", Gtk.IconSize.MENU));
-//                                                find_icon_sized("edit-find-symbolic", Gtk.IconSize.MENU));
         this.search_entry.set_icon_tooltip_text(EntryIconPosition.PRIMARY,
                                                 _("Search for an identity or service"));
         this.search_entry.set_icon_sensitive(EntryIconPosition.PRIMARY, false);
 
         this.search_entry.set_icon_from_pixbuf(EntryIconPosition.SECONDARY,
                                                find_icon_sized("process-stop", Gtk.IconSize.MENU));
-//                                                find_icon_sized("edit-clear-symbolic", Gtk.IconSize.MENU));
         this.search_entry.set_icon_tooltip_text(EntryIconPosition.SECONDARY,
                                                 _("Clear the current search"));
         this.search_entry.set_icon_sensitive(EntryIconPosition.SECONDARY, false);
@@ -851,8 +684,6 @@ SUCH DAMAGE.
         prompting_service.set_alignment(0, (float )0.5);
 
         var vbox_left = new VBox(false, 0);
-        // vbox_left.pack_start(search_entry, false, false, 6);
-        // vbox_left.pack_start(id_scrollwin, true, true, 6);
 
         var search_hbox = new HBox(false, 6);
         var search_label = new Label(_("Search:"));
@@ -882,73 +713,7 @@ SUCH DAMAGE.
         no_identity_title.set_line_wrap(true);
         no_identity_title.show();
 
-        // var login_vbox_title = new Label(_("Login: "));
-        // label_make_bold(login_vbox_title);
-        // login_vbox_title.set_alignment(0, (float) 0.5);
-        // var issuer_label = new Label(_("Issuer:"));
-        // issuer_label.set_alignment(1, (float) 0.5);
-        // this.issuer_entry = new Entry();
-        // issuer_entry.set_can_focus(false);
-        // var username_label = new Label(_("Username:"));
-        // username_label.set_alignment(1, (float) 0.5);
-        // this.username_entry = new Entry();
-        // username_entry.set_can_focus(false);
-        // var password_label = new Label(_("Password:"));
-        // password_label.set_alignment(1, (float) 0.5);
-        // this.password_entry = new Entry();
-        // password_entry.set_invisible_char('*');
-        // password_entry.set_visibility(false);
-        // password_entry.set_sensitive(false);
-        // this.remember_checkbutton = new CheckButton.with_label(_("Remember password"));
-        // remember_checkbutton.set_sensitive(false);
-
-        // set_atk_relation(issuer_label, issuer_entry, Atk.RelationType.LABEL_FOR);
-        // set_atk_relation(username_label, username_entry, Atk.RelationType.LABEL_FOR);
-        // set_atk_relation(password_entry, password_entry, Atk.RelationType.LABEL_FOR);
-
-        // // Create the login_vbox. This starts off hidden, because the first card we
-        // // display, by default, is NO_IDENTITY.
-        // var login_table = new Table(5, 2, false);
-        // login_table.set_col_spacings(10);
-        // login_table.set_row_spacings(10);
-        // login_table.attach_defaults(issuer_label, 0, 1, 0, 1);
-        // login_table.attach_defaults(issuer_entry, 1, 2, 0, 1);
-        // login_table.attach_defaults(username_label, 0, 1, 1, 2);
-        // login_table.attach_defaults(username_entry, 1, 2, 1, 2);
-        // login_table.attach_defaults(password_label, 0, 1, 2, 3);
-        // login_table.attach_defaults(password_entry, 1, 2, 2, 3);
-        // login_table.attach_defaults(remember_checkbutton,  1, 2, 3, 4);
-        // login_table.attach_defaults(update_password_button, 0, 1, 4, 5);
-        // var login_vbox_alignment = new Alignment(0, 0, 0, 0);
-        // login_vbox_alignment.set_padding(0, 0, 12, 0);
-        // login_vbox_alignment.add(login_table);
-        // this.login_vbox = new VBox(false, 6);
-        // login_vbox.pack_start(login_vbox_title, false, true, 0);
-        // login_vbox.pack_start(login_vbox_alignment, false, true, 0);
-        // login_vbox.hide();
-
-        // var services_vbox_title = new Label(_("Services:"));
-        // label_make_bold(services_vbox_title);
-        // services_vbox_title.set_alignment(0, (float) 0.5);
-        
-        // this.services_internal_vbox = new VBox(true, 6);
-
-        // var services_vbox_alignment = new Alignment(0, 0, 0, 1);
-        // services_vbox_alignment.set_padding(6, 6, 6, 6);
-        // services_vbox_alignment.add(services_internal_vbox);
-        // services_vscroll = new ScrolledWindow(null, null);
-        // services_vscroll.set_policy(PolicyType.NEVER, PolicyType.AUTOMATIC);
-        // services_vscroll.set_shadow_type(ShadowType.IN);
-        // services_vscroll.add_with_viewport(services_vbox_alignment);
-
-        // services_vbox = new VBox(false, 6);
         this.vbox_right = new VBox(false, 6);
-        // services_vbox.pack_start(services_vbox_title, false, false, 0);
-        // services_vbox.pack_start(services_vscroll, true, true, 0);
-
-        // vbox_right.pack_start(no_identity_title, true, false, 0);
-        // vbox_right.pack_start(login_vbox, false, false, 0);
-        // vbox_right.pack_start(services_vbox, true, true, 0);
 
         var add_button = new Button.with_label(_("Add"));
         add_button.clicked.connect((w) => {add_identity_cb();});
@@ -961,7 +726,7 @@ SUCH DAMAGE.
         remove_button.clicked.connect((w) => {remove_identity_cb(custom_vbox.current_idcard);});
         remove_button.set_sensitive(false);
 
-        var send_button = new Button.with_label(_("Send"));
+        send_button = new Button.with_label(_("Send"));
         send_button.clicked.connect((w) => {send_identity_cb(custom_vbox.current_idcard.id_card);});
         send_button.set_visible(false);
 
@@ -973,9 +738,6 @@ SUCH DAMAGE.
         vbox_right.pack_start(remove_button, false, false, 6);
         vbox_right.pack_start(send_button, false, false, 24);
 
-        //var hbox = new HBox(false, 12);
-        // hbox.pack_start(vbox_left, true, true, 0);
-        // hbox.pack_start(vbox_right, false, false, 0);
         id_and_button_box.pack_start(vbox_right, false, false, 0);
         var main_vbox = new VBox(false, 0);
         main_vbox.set_border_width(12);

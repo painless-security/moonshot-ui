@@ -38,10 +38,6 @@ class IdCardWidget : Box
     public IdCard id_card { get; set; default = null; }
     private VBox main_vbox;
     private HBox table;
-    // public Button delete_button { get; private set; default = null; }
-    // public Button details_button { get; private set; default = null; }
-    // public Button send_button { get; private set; default = null; }
-//    private HButtonBox hbutton_box;
     private EventBox event_box;
     private bool   is_selected = false;
     
@@ -60,7 +56,6 @@ class IdCardWidget : Box
 
     public void collapse()
     {
-//        this.hbutton_box.set_visible(false);
         is_selected = false;
         update_id_card_label();
 
@@ -69,7 +64,6 @@ class IdCardWidget : Box
 
     public void expand()
     {
-//        this.hbutton_box.set_visible(true);
         is_selected = true;
         update_id_card_label();
 
@@ -172,25 +166,8 @@ class IdCardWidget : Box
         table.pack_start(image, false, false, 0);
         table.pack_start(label, true, true, 0);
 
-        // this.delete_button = new Button.with_label(_("Delete"));
-        // this.details_button = new Button.with_label(_("View details"));
-        // this.send_button = new Button.with_label(_("Send"));
-        // set_atk_name_description(delete_button, _("Delete"), _("Delete this ID Card"));
-        // set_atk_name_description(details_button, _("Details"), _("View the details of this ID Card"));
-        // set_atk_name_description(send_button, _("Send"), _("Send this ID Card"));
-        // this.hbutton_box = new HButtonBox();
-        // hbutton_box.pack_end(delete_button);
-        // hbutton_box.pack_end(details_button);
-        // hbutton_box.pack_end(send_button);
-        // send_button.set_sensitive(false);
-
-        // delete_button.clicked.connect(delete_button_cb);
-        // details_button.clicked.connect(details_button_cb);
-        // send_button.clicked.connect(send_button_cb);
-
         this.main_vbox = new VBox(false, 12);
         main_vbox.pack_start(table, true, true, 0);
-//        main_vbox.pack_start(hbutton_box, false, false, 0);
         main_vbox.set_border_width(12);
 
         event_box = new EventBox();
@@ -200,27 +177,7 @@ class IdCardWidget : Box
         this.pack_start(event_box, true, true);
 
         this.show_all();
-//        this.hbutton_box.hide();
 
         set_idcard_color();
     }
-
-    // private void set_atk_name_description(Widget widget, string name, string description)
-    // {
-    //     if (widget == null)
-    //     {
-    //         logger.error("set_atk_name_description: widget is null for name=" + name + "; description=" + description);
-    //         return;
-    //     }
-
-    //     var atk_widget = widget.get_accessible();
-
-    //     if (atk_widget == null)
-    //     {
-    //         logger.error("set_atk_name_description: atk_widget is null for name=" + name + "; description=" + description);
-    //         return;
-    //     }
-    //     atk_widget.set_name(name);
-    //     atk_widget.set_description(description);
-    // }
 }

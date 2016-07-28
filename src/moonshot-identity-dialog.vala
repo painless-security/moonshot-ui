@@ -260,11 +260,8 @@ class IdentityDialog : Dialog
     {
         logger.trace("make_services_vbox");
 
-//        var services_internal_vbox = new VBox(true, 6);
-
         var services_vbox_alignment = new Alignment(0, 0, 0, 1);
         services_vbox_alignment.set_padding(6, 6, 6, 6);
-//        services_vbox_alignment.add(services_internal_vbox);
         var services_vscroll = new ScrolledWindow(null, null);
         services_vscroll.set_policy(PolicyType.NEVER, PolicyType.AUTOMATIC);
         services_vscroll.set_shadow_type(ShadowType.IN);
@@ -285,7 +282,6 @@ class IdentityDialog : Dialog
         var table_button_hbox = new HBox(false, 6);
         table_button_hbox.pack_start(services_vscroll, true, true, 6);
         table_button_hbox.pack_start(remove_button, false, false, 6);
-        // services_internal_vbox.pack_start(table_button_hbox, true, false, 0);
         services_vbox_alignment.add(services_table);        
 
         var services_vbox_title = new Label(_("Services:"));
@@ -377,8 +373,6 @@ class IdentityDialog : Dialog
                         services_table.remove(selected_item.parent);
                         selected_item = null;
                         remove_button.set_sensitive(false);
-                
-                        // parent.identities_manager.update_card(id_card);
                     }
                 }
               
