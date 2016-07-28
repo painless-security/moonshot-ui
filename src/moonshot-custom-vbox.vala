@@ -64,7 +64,6 @@ class CustomVBox : VBox
     {
         pack_start(id_card_widget, false, false);
         id_card_widget.position = next_pos++;
-        logger.trace("add_id_card_widget: Added idcard at position " + id_card_widget.position.to_string());
     }
 
     public void remove_id_card_widget(IdCardWidget id_card_widget)

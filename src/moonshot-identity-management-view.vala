@@ -314,7 +314,7 @@ public class IdentityManagerView : Window {
         id_card.username = dialog.username;
         id_card.password = dialog.password;
         id_card.store_password = dialog.store_password;
-        id_card.services = {};
+        id_card.services = dialog.get_services();
 
         return id_card;
     }

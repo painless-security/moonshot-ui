@@ -114,7 +114,6 @@ class IdCardWidget : Box
                 color.blue = 65535;
         }
         else {
-            logger.trace("set_idcard_color: position=" + position.to_string());
             if (position % 2 == 0)
             {
                 color.red = color.green = color.blue = 0xf2 << 8;

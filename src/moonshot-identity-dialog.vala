@@ -61,7 +61,10 @@ class IdentityDialog : Dialog
     private CheckButton remember_checkbutton;
     private Label message_label;
     public bool complete;
+    private IdCard card;
     
+    private Label selected_item = null;
+
     public string display_name {
         get { return displayname_entry.get_text(); }
     }
@@ -82,6 +85,11 @@ class IdentityDialog : Dialog
         get { return remember_checkbutton.active; }
     }
 
+    internal string[] get_services()
+    {
+        return card.services;
+    }
+
     public IdentityDialog(IdentityManagerView parent)
     {
         this.with_idcard(null, _("Add ID Card"), parent);
@@ -95,7 +103,7 @@ class IdentityDialog : Dialog
             is_new_card = true;
         }
 
-        IdCard card = a_card ?? new IdCard();
+        card = a_card ?? new IdCard();
         this.set_title(title);
         this.set_modal(true);
         this.set_transient_for(parent);
@@ -156,25 +164,11 @@ class IdentityDialog : Dialog
         vbox.set_border_width(6);
         vbox.pack_start(table, false, false, 0);
 
-
-        var services_vbox_title = new Label(_("Services:"));
-        label_make_bold(services_vbox_title);
-        services_vbox_title.set_alignment(0, (float) 0.5);
-        
-        var services_internal_vbox = new VBox(true, 6);
-
-        var services_vbox_alignment = new Alignment(0, 0, 0, 1);
-        services_vbox_alignment.set_padding(6, 6, 6, 6);
-        services_vbox_alignment.add(services_internal_vbox);
-        var services_vscroll = new ScrolledWindow(null, null);
-        services_vscroll.set_policy(PolicyType.NEVER, PolicyType.AUTOMATIC);
-        services_vscroll.set_shadow_type(ShadowType.IN);
-        services_vscroll.add_with_viewport(services_vbox_alignment);
-
-        var services_vbox = new VBox(false, 6);
-        services_vbox.pack_start(services_vbox_title, false, false, 0);
-        services_vbox.pack_start(services_vscroll, true, true, 0);
-
+        if (!is_new_card)
+        {
+            var services_vbox = make_services_vbox();
+            vbox.pack_start(services_vbox);
+        }
 
         ((Container) content_area).add(vbox);
 
@@ -262,74 +256,135 @@ class IdentityDialog : Dialog
         label.modify_font(font_desc);
     }
 
-    private void fill_services_vbox(IdCard id_card, VBox services_internal_vbox)
+    private VBox make_services_vbox()
     {
-        logger.trace("fill_services_vbox");
+        logger.trace("make_services_vbox");
 
-        // var children = services_internal_vbox.get_children();
-        // foreach (var widget in children) {
-        //     services_internal_vbox.remove(widget);
-        // }
+//        var services_internal_vbox = new VBox(true, 6);
+
+        var services_vbox_alignment = new Alignment(0, 0, 0, 1);
+        services_vbox_alignment.set_padding(6, 6, 6, 6);
+//        services_vbox_alignment.add(services_internal_vbox);
+        var services_vscroll = new ScrolledWindow(null, null);
+        services_vscroll.set_policy(PolicyType.NEVER, PolicyType.AUTOMATIC);
+        services_vscroll.set_shadow_type(ShadowType.IN);
+        services_vscroll.set_size_request(0, 60);
+        services_vscroll.add_with_viewport(services_vbox_alignment);
+
+#if VALA_0_12
+        var remove_button = new Button.from_stock(Stock.REMOVE);
+#else
+        var remove_button = new Button.from_stock(STOCK_REMOVE);
+#endif
+        remove_button.set_sensitive(false);
+
+
+        var services_table = new Table(card.services.length, 1, false);
+        services_table.set_row_spacings(5);
+
+        var table_button_hbox = new HBox(false, 6);
+        table_button_hbox.pack_start(services_vscroll, true, true, 6);
+        table_button_hbox.pack_start(remove_button, false, false, 6);
+        // services_internal_vbox.pack_start(table_button_hbox, true, false, 0);
+        services_vbox_alignment.add(services_table);        
+
+        var services_vbox_title = new Label(_("Services:"));
+        label_make_bold(services_vbox_title);
+        services_vbox_title.set_alignment(0, (float) 0.5);
+        
+        var services_vbox = new VBox(false, 6);
+        services_vbox.pack_start(services_vbox_title, false, false, 6);
+        services_vbox.pack_start(table_button_hbox, true, true, 6);
+
+
+        var selected_color = Gdk.Color();
+        selected_color.red = 0xd9 << 8;
+        selected_color.green = 0xf7 << 8;
+        selected_color.blue = 65535;
+
+        var unselected_color = Gdk.Color();
+        unselected_color.red = 65535;
+        unselected_color.green = 65535;
+        unselected_color.blue = 65535;
 
         int i = 0;
-        var n_rows = id_card.services.length;
-
-        var services_table = new Table(n_rows, 2, false);
-        services_table.set_col_spacings(10);
-        services_table.set_row_spacings(10);
-        services_internal_vbox.pack_start(services_table, true, false, 0);
-        
-        foreach (string service in id_card.services)
+        foreach (string service in card.services)
         {
             var label = new Label(service);
-            label.set_alignment(0, (float) 0.5);
-#if VALA_0_12
-            var remove_button = new Button.from_stock(Stock.REMOVE);
-#else
-            var remove_button = new Button.from_stock(STOCK_REMOVE);
-#endif
+            label.set_alignment(0, (float) 0);
 
-            remove_button.clicked.connect((remove_button) =>
+            EventBox event_box = new EventBox();
+            event_box.add(label);
+            event_box.button_press_event.connect(() =>
                 {
-                    var dialog = new Gtk.MessageDialog(this,
-                                                       Gtk.DialogFlags.DESTROY_WITH_PARENT,
-                                                       Gtk.MessageType.QUESTION,
-                                                       Gtk.ButtonsType.YES_NO,
-                                                       _("Are you sure you want to stop '%s' ID Card from being used with %s?"),
-                                                       id_card.display_name,
-                                                       service);
-                    var ret = dialog.run();
-                    dialog.hide();
-              
-                    if (ret == Gtk.ResponseType.YES)
+                    var state = label.get_state();
+                    if (selected_item == label)
                     {
-                        if (id_card != null) {
-                            SList<string> services = new SList<string>();
-                
-                            foreach (string srv in id_card.services)
-                            {
-                                //if (srv == candidate) //!!TODO: If srv is the service to be removed
-                                //    continue;
-                                services.append(srv);
-                            }
-                
-                            id_card.services = new string[services.length()];
-                            for (int j = 0; j < id_card.services.length; j++)
-                            {
-                                id_card.services[j] = services.nth_data(j);
-                            }
-                
-                            parent.identities_manager.update_card(id_card);
-                        }
+                        // Deselect
+                        selected_item.modify_bg(state, unselected_color);
+                        selected_item = null;
+                        remove_button.set_sensitive(false);
                     }
-              
+                    else
+                    {
+                        if (selected_item != null)
+                        {
+                            // Deselect
+                            selected_item.modify_bg(state, unselected_color);
+                            selected_item = null;
+                        }
+
+                        // Select
+                        selected_item = label;
+                        selected_item.modify_bg(state, selected_color);
+                        remove_button.set_sensitive(true);
+                    }
+                    return false;
                 });
-            services_table.attach_defaults(label, 0, 1, i, i+1);
-            services_table.attach_defaults(remove_button, 1, 2, i, i+1);
+
+            services_table.attach_defaults(event_box, 0, 1, i, i+1);
             i++;
         }
 
-        // services_vbox.show_all();
+        remove_button.clicked.connect((remove_button) =>
+            {
+                var dialog = new Gtk.MessageDialog(this,
+                                                   Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                                                   Gtk.MessageType.QUESTION,
+                                                   Gtk.ButtonsType.YES_NO,
+                                                   _("You are about to remove the service '%s'. Are you sure you want to do this?"),
+                                                   selected_item.label);
+                var ret = dialog.run();
+                dialog.destroy();
+              
+                if (ret == Gtk.ResponseType.YES)
+                {
+                    if (card != null) {
+                        SList<string> services = new SList<string>();
+                
+                        foreach (string srv in card.services)
+                        {
+                            if (srv != selected_item.label)
+                                services.append(srv);
+                        }
+                
+                        card.services = new string[services.length()];
+                        for (int j = 0; j < card.services.length; j++)
+                        {
+                            card.services[j] = services.nth_data(j);
+                        }
+
+                        services_table.remove(selected_item.parent);
+                        selected_item = null;
+                        remove_button.set_sensitive(false);
+                
+                        // parent.identities_manager.update_card(id_card);
+                    }
+                }
+              
+            });
+
+        return services_vbox;
     }
 
 
