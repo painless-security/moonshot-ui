@@ -296,7 +296,7 @@ public class IdentityManagerView : Window {
         this.edit_button.set_sensitive(true);
         this.custom_vbox.receive_expanded_event(id_card_widget);
 
-        if (main_window.request_queue.length > 0)
+        if (this.request_queue.length > 0)
              this.send_button.set_sensitive(true);
     }
 

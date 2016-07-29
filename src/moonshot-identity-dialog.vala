@@ -42,10 +42,24 @@ static const string CANCEL = STOCK_CANCEL;
 
 class IdentityDialog : Dialog
 {
+    private static Gdk.Color white = make_color(65535, 65535, 65535);
+    private static Gdk.Color selected_color = make_color(0xd9 << 8, 0xf7 << 8, 65535);
+    private static Gdk.Color alt_color = make_color(0xf2 << 8, 0xf2 << 8, 0xf2 << 8);
+
+    private static Gdk.Color make_color(uint16 red, uint16 green, uint16 blue)
+    {
+        Gdk.Color color = Gdk.Color();
+        color.red = red;
+        color.green = green;
+        color.blue = blue;
+
+        return color;
+    }
+
     private static MoonshotLogger logger = get_logger("IdentityDialog");
 
     static const string displayname_labeltext = _("Display Name");
-    static const string issuer_labeltext = _("Issuer");
+    static const string issuer_labeltext = _("Realm");
     static const string username_labeltext = _("Username");
     static const string password_labeltext = _("Password");
 
@@ -174,6 +188,7 @@ class IdentityDialog : Dialog
 
         this.set_border_width(6);
         this.set_resizable(false);
+        this.modify_bg(StateType.NORMAL, white);
         this.show_all();
     }
 
@@ -281,7 +296,11 @@ class IdentityDialog : Dialog
 
         var table_button_hbox = new HBox(false, 6);
         table_button_hbox.pack_start(services_vscroll, true, true, 6);
-        table_button_hbox.pack_start(remove_button, false, false, 6);
+
+        // Hack to prevent the button from growing vertically
+        VBox fixed_height = new VBox(false, 0);
+        fixed_height.pack_start(remove_button, false, false, 0);
+        table_button_hbox.pack_start(fixed_height, false, false, 6);
         services_vbox_alignment.add(services_table);        
 
         var services_vbox_title = new Label(_("Services:"));
@@ -291,17 +310,6 @@ class IdentityDialog : Dialog
         var services_vbox = new VBox(false, 6);
         services_vbox.pack_start(services_vbox_title, false, false, 6);
         services_vbox.pack_start(table_button_hbox, true, true, 6);
-
-
-        var selected_color = Gdk.Color();
-        selected_color.red = 0xd9 << 8;
-        selected_color.green = 0xf7 << 8;
-        selected_color.blue = 65535;
-
-        var unselected_color = Gdk.Color();
-        unselected_color.red = 65535;
-        unselected_color.green = 65535;
-        unselected_color.blue = 65535;
 
         int i = 0;
         foreach (string service in card.services)
@@ -317,7 +325,7 @@ class IdentityDialog : Dialog
                     if (selected_item == label)
                     {
                         // Deselect
-                        selected_item.modify_bg(state, unselected_color);
+                        selected_item.modify_bg(state, white);
                         selected_item = null;
                         remove_button.set_sensitive(false);
                     }
@@ -326,7 +334,7 @@ class IdentityDialog : Dialog
                         if (selected_item != null)
                         {
                             // Deselect
-                            selected_item.modify_bg(state, unselected_color);
+                            selected_item.modify_bg(state, white);
                             selected_item = null;
                         }
 
