@@ -59,15 +59,15 @@ class IdentityDialog : Dialog
     private static MoonshotLogger logger = get_logger("IdentityDialog");
 
     static const string displayname_labeltext = _("Display Name");
-    static const string issuer_labeltext = _("Realm");
+    static const string realm_labeltext = _("Realm");
     static const string username_labeltext = _("Username");
     static const string password_labeltext = _("Password");
 
     private IdentityManagerView parent;
     private Entry displayname_entry;
     private Label displayname_label;
-    private Entry issuer_entry;
-    private Label issuer_label;
+    private Entry realm_entry;
+    private Label realm_label;
     private Entry username_entry;
     private Label username_label;
     private Entry password_entry;
@@ -76,7 +76,7 @@ class IdentityDialog : Dialog
     private Label message_label;
     public bool complete;
     private IdCard card;
-    
+
     private Label selected_item = null;
 
     public string display_name {
@@ -84,7 +84,7 @@ class IdentityDialog : Dialog
     }
 
     public string issuer {
-        get { return issuer_entry.get_text(); }
+        get { return realm_entry.get_text(); }
     }
 
     public string username {
@@ -124,72 +124,88 @@ class IdentityDialog : Dialog
         this.parent = parent;
 
         this.add_buttons(_("OK"), ResponseType.OK, CANCEL, ResponseType.CANCEL);
-        var content_area = this.get_content_area();
-        ((Box) content_area).set_spacing(12);
-        
+        Box content_area = (Box) this.get_content_area();
+
         displayname_label = new Label(@"$displayname_labeltext:");
-        displayname_label.set_alignment(1,(float) 0.5);
+        displayname_label.set_alignment(0, (float) 0.5);
         displayname_entry = new Entry();
         displayname_entry.set_text(card.display_name);
+        displayname_entry.set_width_chars(40);
 
-        issuer_label = new Label(@"$issuer_labeltext:");
-        issuer_label.set_alignment(1,(float) 0.5);
-        this.issuer_entry = new Entry();
-        this.issuer_entry.set_text(card.issuer);
+        realm_label = new Label(@"$realm_labeltext:");
+        realm_label.set_alignment(0, (float) 0.5);
+        realm_entry = new Entry();
+        realm_entry.set_text(card.issuer);
+        realm_entry.set_width_chars(60);
 
         username_label = new Label(@"$username_labeltext:");
-        username_label.set_alignment(1,(float) 0.5);
-        this.username_entry = new Entry();
-        this.username_entry.set_text(card.username);
+        username_label.set_alignment(0, (float) 0.5);
+        username_entry = new Entry();
+        username_entry.set_text(card.username);
+        username_entry.set_width_chars(40);
 
         password_label = new Label(@"$password_labeltext:");
-        password_label.set_alignment(1,(float) 0.5);
-        this.password_entry = new Entry();
+        password_label.set_alignment(0, (float) 0.5);
+        password_entry = new Entry();
         password_entry.set_invisible_char('*');
         password_entry.set_visibility(false);
         password_entry.set_text(card.password);
+        password_entry.set_width_chars(40);
 
-        this.remember_checkbutton = new CheckButton.with_label(_("Remember password"));
-        this.message_label = new Label("");
+        remember_checkbutton = new CheckButton.with_label(_("Remember password"));
+        message_label = new Label("");
         message_label.set_visible(false);
 
         set_atk_relation(displayname_label, displayname_entry, Atk.RelationType.LABEL_FOR);
-        set_atk_relation(issuer_label, issuer_entry, Atk.RelationType.LABEL_FOR);
+        set_atk_relation(realm_label, realm_entry, Atk.RelationType.LABEL_FOR);
         set_atk_relation(username_label, username_entry, Atk.RelationType.LABEL_FOR);
         set_atk_relation(password_entry, password_entry, Atk.RelationType.LABEL_FOR);
 
-        var table = new Table(6, 2, false);
-        table.set_col_spacings(10);
-        table.set_row_spacings(10);
-        
-        table.attach_defaults(message_label, 0, 2, 0, 1);
-        table.attach_defaults(displayname_label, 0, 1, 1, 2);
-        table.attach_defaults(displayname_entry, 1, 2, 1, 2);
-        table.attach_defaults(issuer_label, 0, 1, 2, 3);
-        table.attach_defaults(issuer_entry, 1, 2, 2, 3);
-        table.attach_defaults(username_label, 0, 1, 3, 4);
-        table.attach_defaults(username_entry, 1, 2, 3, 4);
-        table.attach_defaults(password_label, 0, 1, 4, 5);
-        table.attach_defaults(password_entry, 1, 2, 4, 5);
-        table.attach_defaults(remember_checkbutton,  1, 2, 5, 6);
+        content_area.pack_start(message_label, false, false, 6);
+        add_as_vbox(content_area, displayname_label, displayname_entry);
+        add_as_vbox(content_area, username_label, username_entry);
+        add_as_vbox(content_area, realm_label, realm_entry);
+        add_as_vbox(content_area, password_label, password_entry);
+
+        // var entries = new VBox(false, 6);
+        // add_as_vbox(entries, displayname_label, displayname_entry);
+        // add_as_vbox(entries, realm_label, realm_entry);
+        // add_as_vbox(entries, username_label, username_entry);
+        // add_as_vbox(entries, password_label, password_entry);
+        // content_area.pack_start(entries, false, false, 0);
+
+        var remember_hbox = new HBox(false, 40);
+        remember_hbox.pack_start(new HBox(false, 0), false, false, 0);
+        remember_hbox.pack_start(remember_checkbutton, false, false, 0);
+        content_area.pack_start(remember_hbox, false, false, 2);
+        // content_area.pack_start(remember_checkbutton, false, false, 2);
 
         this.response.connect(on_response);
-        var vbox = new VBox(false, 0);
-        vbox.set_border_width(6);
-        vbox.pack_start(table, false, false, 0);
+        content_area.set_border_width(6);
 
         if (!is_new_card)
         {
             var services_vbox = make_services_vbox();
-            vbox.pack_start(services_vbox);
+            content_area.pack_start(services_vbox);
         }
-
-        ((Container) content_area).add(vbox);
 
         this.set_border_width(6);
         this.set_resizable(false);
         this.modify_bg(StateType.NORMAL, white);
         this.show_all();
+    }
+
+    private static void add_as_vbox(Box content_area, Label label, Entry entry)
+    {
+        VBox vbox = new VBox(false, 2);
+
+        vbox.pack_start(label, false, false, 0);
+        vbox.pack_start(entry, false, false, 0);
+
+        // Hack to prevent the text entries from stretching horizontally
+        HBox hbox = new HBox(false, 0);
+        hbox.pack_start(vbox, false, false, 0);
+        content_area.pack_start(hbox, false, false, 6);
     }
 
     private static string update_preamble(string preamble)
@@ -226,8 +242,8 @@ class IdentityDialog : Dialog
         string message = "";
         string password_test = store_password ? password : "not required";
         check_field(display_name, displayname_label, displayname_labeltext, ref preamble, ref message);
-        check_field(issuer, issuer_label, issuer_labeltext, ref preamble, ref message);
         check_field(username, username_label, username_labeltext, ref preamble, ref message);
+        check_field(issuer, realm_label, realm_labeltext, ref preamble, ref message);
         check_field(password_test, password_label, password_labeltext, ref preamble, ref message);
         if (message != "") {
             message_label.set_visible(true);
@@ -301,12 +317,12 @@ class IdentityDialog : Dialog
         VBox fixed_height = new VBox(false, 0);
         fixed_height.pack_start(remove_button, false, false, 0);
         table_button_hbox.pack_start(fixed_height, false, false, 6);
-        services_vbox_alignment.add(services_table);        
+        services_vbox_alignment.add(services_table);
 
         var services_vbox_title = new Label(_("Services:"));
         label_make_bold(services_vbox_title);
         services_vbox_title.set_alignment(0, (float) 0.5);
-        
+
         var services_vbox = new VBox(false, 6);
         services_vbox.pack_start(services_vbox_title, false, false, 6);
         services_vbox.pack_start(table_button_hbox, true, true, 6);
@@ -360,18 +376,18 @@ class IdentityDialog : Dialog
                                                    selected_item.label);
                 var ret = dialog.run();
                 dialog.destroy();
-              
+
                 if (ret == Gtk.ResponseType.YES)
                 {
                     if (card != null) {
                         SList<string> services = new SList<string>();
-                
+
                         foreach (string srv in card.services)
                         {
                             if (srv != selected_item.label)
                                 services.append(srv);
                         }
-                
+
                         card.services = new string[services.length()];
                         for (int j = 0; j < card.services.length; j++)
                         {
@@ -383,7 +399,7 @@ class IdentityDialog : Dialog
                         remove_button.set_sensitive(false);
                     }
                 }
-              
+
             });
 
         return services_vbox;
