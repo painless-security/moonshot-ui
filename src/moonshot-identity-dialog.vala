@@ -292,7 +292,6 @@ class IdentityDialog : Dialog
         logger.trace("make_services_vbox");
 
         var services_vbox_alignment = new Alignment(0, 0, 0, 1);
-        services_vbox_alignment.set_padding(6, 6, 6, 6);
         var services_vscroll = new ScrolledWindow(null, null);
         services_vscroll.set_policy(PolicyType.NEVER, PolicyType.AUTOMATIC);
         services_vscroll.set_shadow_type(ShadowType.IN);
@@ -308,7 +307,9 @@ class IdentityDialog : Dialog
 
 
         var services_table = new Table(card.services.length, 1, false);
-        services_table.set_row_spacings(5);
+        services_table.set_row_spacings(1);
+        services_table.set_col_spacings(0);
+        services_table.modify_bg(StateType.NORMAL, white);
 
         var table_button_hbox = new HBox(false, 6);
         table_button_hbox.pack_start(services_vscroll, true, true, 6);
@@ -317,7 +318,13 @@ class IdentityDialog : Dialog
         VBox fixed_height = new VBox(false, 0);
         fixed_height.pack_start(remove_button, false, false, 0);
         table_button_hbox.pack_start(fixed_height, false, false, 6);
-        services_vbox_alignment.add(services_table);
+
+        // A table doesn't have a background color, so put it in an EventBox, and
+        // set the EventBox's background color instead.
+        EventBox table_bg = new EventBox();
+        table_bg.modify_bg(StateType.NORMAL, white);
+        table_bg.add(services_table);
+        services_vbox_alignment.add(table_bg);
 
         var services_vbox_title = new Label(_("Services:"));
         label_make_bold(services_vbox_title);
@@ -331,17 +338,20 @@ class IdentityDialog : Dialog
         foreach (string service in card.services)
         {
             var label = new Label(service);
-            label.set_alignment(0, (float) 0);
+            label.set_alignment((float) 0, (float) 0);
 
             EventBox event_box = new EventBox();
+            event_box.modify_bg(StateType.NORMAL, white);
             event_box.add(label);
             event_box.button_press_event.connect(() =>
                 {
                     var state = label.get_state();
+                    logger.trace("button_press_callback: Label state=" + state.to_string() + " setting bg to " + white.to_string());
+
                     if (selected_item == label)
                     {
                         // Deselect
-                        selected_item.modify_bg(state, white);
+                        selected_item.parent.modify_bg(state, white);
                         selected_item = null;
                         remove_button.set_sensitive(false);
                     }
@@ -350,19 +360,20 @@ class IdentityDialog : Dialog
                         if (selected_item != null)
                         {
                             // Deselect
-                            selected_item.modify_bg(state, white);
+                            selected_item.parent.modify_bg(state, white);
                             selected_item = null;
                         }
 
                         // Select
                         selected_item = label;
-                        selected_item.modify_bg(state, selected_color);
+                        selected_item.parent.modify_bg(state, selected_color);
                         remove_button.set_sensitive(true);
                     }
                     return false;
                 });
 
-            services_table.attach_defaults(event_box, 0, 1, i, i+1);
+            AttachOptions opts = AttachOptions.EXPAND | AttachOptions.FILL;
+            services_table.attach(event_box, 0, 1, i, i+1, opts, opts, 3, 0);
             i++;
         }
 
