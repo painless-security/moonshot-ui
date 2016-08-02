@@ -45,7 +45,7 @@ public class IdentityManagerView : Window {
     private Entry search_entry;
     private VBox vbox_right;
     private CustomVBox custom_vbox;
-    private Label prompting_service;
+    private VBox service_prompt_vbox;
     private Label no_identity_title;
     private Button edit_button;
     private Button remove_button;
@@ -442,10 +442,33 @@ public class IdentityManagerView : Window {
         dialog.destroy();
     }
 
-    public void set_prompting_service(string service)
+    private void set_prompting_service(string service)
     {
-        prompting_service.set_label( _("Identity requested for service: %s").printf(service) );
+        clear_selection_prompts();
+
+        var prompting_service = new Label(_(""));
+        prompting_service.set_label( _("Identity requested for service:\n%s").printf(service));
+        prompting_service.set_line_wrap(true);
+
+        // left-align
+        prompting_service.set_alignment(0, (float )0.5);
+
+        var selection_prompt = new Label(_("Select your identity:"));
+        selection_prompt.set_alignment(0, 1);
+
+        this.service_prompt_vbox.pack_start(prompting_service, false, false, 12);
+        this.service_prompt_vbox.pack_start(selection_prompt, false, false, 2);
     }
+
+    private void clear_selection_prompts()
+    {
+        var list = service_prompt_vbox.get_children();
+        foreach (Widget w in list)
+        {
+            service_prompt_vbox.remove(w);
+        }
+    }
+
 
     public void queue_identity_request(IdentityRequest request)
     {
@@ -517,7 +540,7 @@ public class IdentityManagerView : Window {
         if (this.request_queue.is_empty())
         {
             candidates = null;
-            prompting_service.set_label(_(""));
+            clear_selection_prompts();
             if (!parent_app.explicitly_launched) {
 // The following occasionally causes the app to exit without sending the dbus
 // reply, so for now we just don't exit
@@ -684,33 +707,34 @@ SUCH DAMAGE.
         id_scrollwin.set_policy(PolicyType.NEVER, PolicyType.AUTOMATIC);
         id_scrollwin.set_shadow_type(ShadowType.IN);
         id_scrollwin.add_with_viewport(viewport);
-        this.prompting_service = new Label(_(""));
-        // left-align
-        prompting_service.set_alignment(0, (float )0.5);
+
+        service_prompt_vbox = new VBox(false, 0);
 
         var vbox_left = new VBox(false, 0);
+        vbox_left.pack_start(service_prompt_vbox, false, false, 12);
 
         var search_hbox = new HBox(false, 6);
-        var search_label = new Label(_("Search:"));
-        search_label.set_alignment(1, (float) 0.5);
-        set_atk_relation(search_label, search_entry, Atk.RelationType.LABEL_FOR);
         search_hbox.pack_end(search_entry, false, false, 0);
-        search_hbox.pack_end(search_label, false, false, 6);
+        //// var search_label = new Label(_("Search:"));
+        //// search_label.set_alignment(1, (float) 0.5);
+        //// set_atk_relation(search_label, search_entry, Atk.RelationType.LABEL_FOR);
+        //// search_hbox.pack_end(search_label, false, false, 6);
 
         var full_search_label = new Label(_("Search for an identity or service"));
-        full_search_label.set_alignment(1, 1);
+        full_search_label.set_alignment(1, 0);
         var search_vbox = new VBox(false, 4);
-        search_vbox.pack_start(search_hbox, false, false, 0);
         search_vbox.pack_start(full_search_label, false, false, 0);
+        search_vbox.pack_start(search_hbox, false, false, 0);
 
         var inner_left_vbox = new VBox(false, 6);
         inner_left_vbox.pack_start(search_vbox, false, false, 6);
+//        inner_left_vbox.pack_start(selection_prompt, false, false, 6);
         inner_left_vbox.pack_start(id_scrollwin, true, true, 0);
 
         var id_and_button_box = new HBox(false, 6);
         id_and_button_box.pack_start(inner_left_vbox, true, true, 6);
         vbox_left.pack_start(id_and_button_box, true, true, 0);
-        vbox_left.pack_start(prompting_service, false, false, 6);
+        // vbox_left.pack_start(prompting_service, false, false, 6);
         vbox_left.set_size_request(WINDOW_WIDTH, 0);
 
         this.no_identity_title = new Label(_("No Identity: Send this identity to services which should not use Moonshot"));
