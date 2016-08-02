@@ -66,8 +66,6 @@ class CustomVBox : VBox
 
     public void remove_id_card_widget(IdCardWidget id_card_widget)
     {
-        logger.trace("remove_id_card_widget");
-
         remove(id_card_widget);
 
         // Caller will eventually clear the list, re-setting all positions. I hope.
