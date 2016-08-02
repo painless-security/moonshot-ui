@@ -446,8 +446,7 @@ public class IdentityManagerView : Window {
     {
         clear_selection_prompts();
 
-        var prompting_service = new Label(_(""));
-        prompting_service.set_label( _("Identity requested for service:\n%s").printf(service));
+        var prompting_service = new Label(_("Identity requested for service:\n%s").printf(service));
         prompting_service.set_line_wrap(true);
 
         // left-align
@@ -458,6 +457,7 @@ public class IdentityManagerView : Window {
 
         this.service_prompt_vbox.pack_start(prompting_service, false, false, 12);
         this.service_prompt_vbox.pack_start(selection_prompt, false, false, 2);
+        this.service_prompt_vbox.show_all();
     }
 
     private void clear_selection_prompts()
