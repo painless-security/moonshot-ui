@@ -645,6 +645,11 @@ SUCH DAMAGE.
 
     private void build_ui()
     {
+        // Note: On Debian7/Gtk+2, the menu bar remains gray. This doesn't happen on Debian8/Gtk+3.
+        Gdk.Color white = Gdk.Color();
+        white.red = white.green = white.blue = 65535;
+        this.modify_bg(StateType.NORMAL, white);
+
         create_ui_manager();
 
         this.search_entry = new Entry();
@@ -728,7 +733,8 @@ SUCH DAMAGE.
 
         send_button = new Button.with_label(_("Send"));
         send_button.clicked.connect((w) => {send_identity_cb(custom_vbox.current_idcard.id_card);});
-        send_button.set_visible(false);
+        // send_button.set_visible(false);
+        send_button.set_sensitive(false);
 
         var empty_box = new VBox(false, 0);
         empty_box.set_size_request(0, 0);
