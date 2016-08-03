@@ -29,6 +29,9 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
 */
+
+using Gtk;
+
 #if OS_WIN32
 extern string? g_win32_get_package_installation_directory_of_module(void *module);
 #endif
@@ -99,4 +102,22 @@ public bool UserForcesFlatFileStore()
         }
     }
     return false;
+}
+
+internal Gdk.Color make_color(uint16 red, uint16 green, uint16 blue)
+{
+    Gdk.Color color = Gdk.Color();
+    color.red = red;
+    color.green = green;
+    color.blue = blue;
+
+    return color;
+}
+
+internal void set_atk_relation(Widget widget, Widget target_widget, Atk.RelationType relationship)
+{
+    var atk_widget = widget.get_accessible();
+    var atk_target_widget = target_widget.get_accessible();
+
+    atk_widget.add_relationship(relationship, atk_target_widget);
 }
