@@ -46,16 +46,6 @@ class IdentityDialog : Dialog
     private static Gdk.Color selected_color = make_color(0xd9 << 8, 0xf7 << 8, 65535);
     private static Gdk.Color alt_color = make_color(0xf2 << 8, 0xf2 << 8, 0xf2 << 8);
 
-    private static Gdk.Color make_color(uint16 red, uint16 green, uint16 blue)
-    {
-        Gdk.Color color = Gdk.Color();
-        color.red = red;
-        color.green = green;
-        color.blue = blue;
-
-        return color;
-    }
-
     private static MoonshotLogger logger = get_logger("IdentityDialog");
 
     static const string displayname_labeltext = _("Display Name");
@@ -146,20 +136,23 @@ class IdentityDialog : Dialog
 
         password_label = new Label(@"$password_labeltext:");
         password_label.set_alignment(0, (float) 0.5);
+
+        remember_checkbutton = new CheckButton.with_label(_("Remember password"));
+        remember_checkbutton.active = card.store_password;
+
         password_entry = new Entry();
         password_entry.set_invisible_char('*');
         password_entry.set_visibility(false);
-        password_entry.set_text(card.password);
         password_entry.set_width_chars(40);
+        password_entry.set_text(card.password);
 
-        remember_checkbutton = new CheckButton.with_label(_("Remember password"));
         message_label = new Label("");
         message_label.set_visible(false);
 
         set_atk_relation(displayname_label, displayname_entry, Atk.RelationType.LABEL_FOR);
         set_atk_relation(realm_label, realm_entry, Atk.RelationType.LABEL_FOR);
         set_atk_relation(username_label, username_entry, Atk.RelationType.LABEL_FOR);
-        set_atk_relation(password_entry, password_entry, Atk.RelationType.LABEL_FOR);
+        set_atk_relation(password_label, password_entry, Atk.RelationType.LABEL_FOR);
 
         content_area.pack_start(message_label, false, false, 6);
         add_as_vbox(content_area, displayname_label, displayname_entry);
@@ -263,14 +256,6 @@ class IdentityDialog : Dialog
             complete = true;
             break;
         }
-    }
-
-    private void set_atk_relation(Widget widget, Widget target_widget, Atk.RelationType relationship)
-    {
-        var atk_widget = widget.get_accessible();
-        var atk_target_widget = target_widget.get_accessible();
-
-        atk_widget.add_relationship(relationship, atk_target_widget);
     }
 
     private static void label_make_bold(Label label)
