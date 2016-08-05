@@ -45,7 +45,7 @@ class CustomVBox : VBox
         set_spacing(spacing);
     }
 
-    public void receive_expanded_event(IdCardWidget id_card_widget)
+    internal void receive_expanded_event(IdCardWidget id_card_widget)
     {
         var list = get_children();
         foreach (Widget id_card in list)
@@ -55,6 +55,12 @@ class CustomVBox : VBox
         }
         current_idcard = id_card_widget;
         
+        check_resize();
+    }
+
+    internal void receive_collapsed_event(IdCardWidget id_card_widget)
+    {
+        current_idcard = null;
         check_resize();
     }
 

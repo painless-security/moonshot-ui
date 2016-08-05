@@ -50,17 +50,24 @@ class IdCardWidget : Box
     }
 
     public signal void expanded();
+    public signal void collapsed();
 
-    public void collapse()
+    private void select()
     {
-        is_selected = false;
-        update_id_card_label();
+        expand();
+        this.expanded();
+    }
 
-        set_idcard_color();
+    private void unselect()
+    {
+        collapse();
+        this.collapsed();
     }
 
     public void expand()
     {
+        logger.trace("expand");
+
         is_selected = true;
         update_id_card_label();
 
@@ -68,12 +75,22 @@ class IdCardWidget : Box
         this.expanded();
     }
 
+    public void collapse()
+    {
+        logger.trace("collapse");
+
+        is_selected = false;
+        update_id_card_label();
+
+        set_idcard_color();
+    }
+
     private bool button_press_cb()
     {
         if (is_selected)
-            collapse();
+            unselect();
         else
-            expand();
+            select();
 
         return false;
     }
