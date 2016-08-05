@@ -215,7 +215,6 @@ public class IdentityManagerView : Window {
             current_idcard_nai = custom_vbox.current_idcard.id_card.nai;
             custom_vbox.current_idcard = null;
         }
-        var children = this.custom_vbox.get_children();
 
         custom_vbox.clear();
         this.listmodel->clear();
@@ -804,13 +803,5 @@ SUCH DAMAGE.
     {
         this.destroy.connect(Gtk.main_quit);
         this.identities_manager.card_list_changed.connect(this.on_card_list_changed);
-    }
-
-    private static void set_atk_relation(Widget widget, Widget target_widget, Atk.RelationType relationship)
-    {
-        var atk_widget = widget.get_accessible();
-        var atk_target_widget = target_widget.get_accessible();
-
-        atk_widget.add_relationship(relationship, atk_target_widget);
     }
 }
