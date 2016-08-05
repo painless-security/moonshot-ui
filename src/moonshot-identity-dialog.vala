@@ -362,8 +362,9 @@ class IdentityDialog : Dialog
         remove_button.clicked.connect((remove_button) =>
             {
                 var result = WarningDialog.confirm(this,
-                                                   "<span font-weight='heavy'>You are about to remove the service '%s'.</span>"
-                                                   .printf(selected_item.label)
+                                                   Markup.printf_escaped(
+                                                       "<span font-weight='heavy'>You are about to remove the service '%s'.</span>",
+                                                       selected_item.label)
                                                    + "\n\nAre you sure you want to do this?",
                                                    "delete_service");
 

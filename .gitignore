@@ -46,7 +46,9 @@ src/moonshot-password-dialog.c
 src/moonshot-provisioning-common-new.vala
 src/moonshot-provisioning-common.c
 src/moonshot-server.c
+src/moonshot-settings.c
 src/moonshot-utils.c
+src/moonshot-warning-dialog.c
 src/moonshot-webp-parser.c
 src/moonshot-window.c
 src/msrpc-client.c

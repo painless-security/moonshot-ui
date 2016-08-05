@@ -31,12 +31,30 @@
 */
 using Gtk;
 
+static const string GROUP_NAME="WarningDialogs";
+
 // MessageDialog doesn't allow subclassing, so we merely wrap the
 // constructor for it the dialog, and then run it, returning the result.
 class WarningDialog 
 {
+    private static MoonshotLogger _logger = null;
+    private static MoonshotLogger logger()
+        {
+            if (_logger == null) {
+                _logger = get_logger("WarningDialog");
+            }
+            return _logger;
+        }
+
     public static bool confirm(Window parent, string message, string dialog_name)
     {
+
+        if (get_bool_setting(GROUP_NAME, dialog_name, false))
+        {
+            logger().trace(@"confirm: Settings group $GROUP_NAME has 'true' for key $dialog_name; skipping dialog and returning true.");
+            return true;
+        }
+
         Gdk.Color white = make_color(65535, 65535, 65535);
 
         MessageDialog dialog = new Gtk.MessageDialog(parent,
@@ -46,7 +64,7 @@ class WarningDialog
                                                      "");
 
         var content_area = dialog.get_content_area();
-        CheckButton remember_checkbutton;
+        CheckButton remember_checkbutton = null;
 
         if (dialog_name != null && dialog_name != "")
         {
@@ -79,6 +97,12 @@ class WarningDialog
         dialog.set_markup(message);
 
         var ret = dialog.run();
+
+        if (ret == Gtk.ResponseType.YES && remember_checkbutton != null && remember_checkbutton.active)
+        {
+            set_bool_setting(GROUP_NAME, dialog_name, true);
+        }
+
         dialog.destroy();
         return (ret == Gtk.ResponseType.YES);
     }
