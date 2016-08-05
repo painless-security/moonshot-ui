@@ -286,6 +286,7 @@ public class IdentityManagerView : Window {
         var id_card_widget = new IdCardWidget(id_card);
         this.custom_vbox.add_id_card_widget(id_card_widget);
         id_card_widget.expanded.connect(this.widget_selected_cb);
+        id_card_widget.collapsed.connect(this.widget_unselected_cb);
         return id_card_widget;
     }
 
@@ -297,6 +298,15 @@ public class IdentityManagerView : Window {
 
         if (this.request_queue.length > 0)
              this.send_button.set_sensitive(true);
+    }
+
+    private void widget_unselected_cb(IdCardWidget id_card_widget)
+    {
+        this.remove_button.set_sensitive(false);
+        this.edit_button.set_sensitive(false);
+        this.custom_vbox.receive_collapsed_event(id_card_widget);
+
+        this.send_button.set_sensitive(false);
     }
 
     public bool add_identity(IdCard id_card, bool force_flat_file_store)
@@ -428,8 +438,9 @@ public class IdentityManagerView : Window {
         var id_card = id_card_widget.id_card;
 
         bool remove = WarningDialog.confirm(this, 
-                                            "<span font-weight='heavy'>You are about to remove the identity '%s'.</span>"
-                                            .printf(id_card.display_name)
+                                            Markup.printf_escaped(
+                                                "<span font-weight='heavy'>You are about to remove the identity '%s'.</span>",
+                                                id_card.display_name)
                                             + "\n\nAre you sure you want to do this?",
                                             "delete_idcard");
         if (remove) 
@@ -525,6 +536,8 @@ public class IdentityManagerView : Window {
 
     private void send_identity_cb(IdCard id)
     {
+        send_button.set_sensitive(false);
+
         IdCard identity = id;
         return_if_fail(request_queue.length > 0);
 
@@ -749,7 +762,7 @@ SUCH DAMAGE.
         remove_button.clicked.connect((w) => {remove_identity_cb(custom_vbox.current_idcard);});
         remove_button.set_sensitive(false);
 
-        send_button = new Button.with_label(_("Send"));
+        this.send_button = new Button.with_label(_("Send"));
         send_button.clicked.connect((w) => {send_identity_cb(custom_vbox.current_idcard.id_card);});
         // send_button.set_visible(false);
         send_button.set_sensitive(false);
