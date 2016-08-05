@@ -44,7 +44,6 @@ class IdentityDialog : Dialog
 {
     private static Gdk.Color white = make_color(65535, 65535, 65535);
     private static Gdk.Color selected_color = make_color(0xd9 << 8, 0xf7 << 8, 65535);
-    private static Gdk.Color alt_color = make_color(0xf2 << 8, 0xf2 << 8, 0xf2 << 8);
 
     private static MoonshotLogger logger = get_logger("IdentityDialog");
 
