@@ -50,9 +50,6 @@ class IdCardWidget : Box
     }
 
     public signal void expanded();
-    public signal void remove_id();
-    public signal void details_id();
-    public signal void send_id();
 
     public void collapse()
     {
@@ -79,21 +76,6 @@ class IdCardWidget : Box
             expand();
 
         return false;
-    }
-
-    private void delete_button_cb()
-    {
-        this.remove_id();
-    }
-
-    private void details_button_cb()
-    {
-        this.details_id();
-    }
-
-    private void send_button_cb()
-    {
-        this.send_id();
     }
 
     private void set_idcard_color()
