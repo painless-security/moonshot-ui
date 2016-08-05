@@ -311,8 +311,10 @@ public class IdentityManagerView : Window {
         #else
         Gtk.MessageDialog dialog;
         IdCard? prev_id = identities_manager.find_id_card(id_card.nai, force_flat_file_store);
+        logger.trace("add_identity: find_id_card returned " + (prev_id != null ? "non-null" : "null"));
         if (prev_id!=null) {
             int flags = prev_id.Compare(id_card);
+            logger.trace("add_identity: compare returned " + flags.to_string());
             if (flags == 0) {
                 return false; // no changes, no need to update
             } else if ((flags & (1 << IdCard.DiffFlags.DISPLAY_NAME)) != 0) {
@@ -426,20 +428,13 @@ public class IdentityManagerView : Window {
     {
         var id_card = id_card_widget.id_card;
 
-        var dialog = new MessageDialog(this,
-                                       DialogFlags.DESTROY_WITH_PARENT,
-                                       MessageType.QUESTION,
-                                       Gtk.ButtonsType.YES_NO,
-                                       _("Are you sure you want to delete %s ID Card?"), id_card.issuer);
-        var result = dialog.run();
-        switch (result) {
-        case ResponseType.YES:
+        bool remove = WarningDialog.confirm(this, 
+                                            "<span font-weight='heavy'>You are about to remove the identity '%s'.</span>"
+                                            .printf(id_card.display_name)
+                                            + "\n\nAre you sure you want to do this?",
+                                            "delete_idcard");
+        if (remove) 
             remove_identity(id_card_widget);
-            break;
-        default:
-            break;
-        }
-        dialog.destroy();
     }
 
     private void set_prompting_service(string service)
@@ -769,15 +764,20 @@ SUCH DAMAGE.
         vbox_right.pack_start(send_button, false, false, 24);
 
         id_and_button_box.pack_start(vbox_right, false, false, 0);
+
         var main_vbox = new VBox(false, 0);
+
+        // Note: This places a border above the menubar. Is that what we want?
         main_vbox.set_border_width(12);
 
 #if OS_MACOS
         // hide the  File | Quit menu item which is now on the Mac Menu
-        Gtk.Widget quit_item =  this.ui_manager.get_widget("/MenuBar/FileMenu/Quit");
-        quit_item.hide();
+//        Gtk.Widget quit_item =  this.ui_manager.get_widget("/MenuBar/FileMenu/Quit");
+//        quit_item.hide();
         
         Gtk.MenuShell menushell = this.ui_manager.get_widget("/MenuBar") as Gtk.MenuShell;
+        menushell.modify_bg(StateType.NORMAL, white);
+
         osxApp.set_menu_bar(menushell);
         osxApp.set_use_quartz_accelerators(true);
         osxApp.sync_menu_bar();
@@ -785,6 +785,7 @@ SUCH DAMAGE.
 #else
         var menubar = this.ui_manager.get_widget("/MenuBar");
         main_vbox.pack_start(menubar, false, false, 0);
+        menubar.modify_bg(StateType.NORMAL, white);
 #endif
         main_vbox.pack_start(vbox_left, true, true, 0);
         add(main_vbox);

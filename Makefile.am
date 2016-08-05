@@ -69,7 +69,8 @@ src_moonshot_SOURCES = \
         src/moonshot-provisioning-common.vala \
         src/moonshot-utils.vala \
         src/moonshot-futils.c \
-        src/moonshot-logger.vala
+        src/moonshot-logger.vala \
+        src/moonshot-warning-dialog.vala
 
 src_moonshot_webp_SOURCES = \
         src/moonshot-webp-parser.vala \

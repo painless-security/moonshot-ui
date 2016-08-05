@@ -53,7 +53,6 @@ class IdentityDialog : Dialog
     static const string username_labeltext = _("Username");
     static const string password_labeltext = _("Password");
 
-    private IdentityManagerView parent;
     private Entry displayname_entry;
     private Label displayname_label;
     private Entry realm_entry;
@@ -111,7 +110,6 @@ class IdentityDialog : Dialog
         this.set_title(title);
         this.set_modal(true);
         this.set_transient_for(parent);
-        this.parent = parent;
 
         this.add_buttons(_("OK"), ResponseType.OK, CANCEL, ResponseType.CANCEL);
         Box content_area = (Box) this.get_content_area();
@@ -364,16 +362,13 @@ class IdentityDialog : Dialog
 
         remove_button.clicked.connect((remove_button) =>
             {
-                var dialog = new Gtk.MessageDialog(this,
-                                                   Gtk.DialogFlags.DESTROY_WITH_PARENT,
-                                                   Gtk.MessageType.QUESTION,
-                                                   Gtk.ButtonsType.YES_NO,
-                                                   _("You are about to remove the service '%s'. Are you sure you want to do this?"),
-                                                   selected_item.label);
-                var ret = dialog.run();
-                dialog.destroy();
+                var result = WarningDialog.confirm(this,
+                                                   "<span font-weight='heavy'>You are about to remove the service '%s'.</span>"
+                                                   .printf(selected_item.label)
+                                                   + "\n\nAre you sure you want to do this?",
+                                                   "delete_service");
 
-                if (ret == Gtk.ResponseType.YES)
+                if (result)
                 {
                     if (card != null) {
                         SList<string> services = new SList<string>();
