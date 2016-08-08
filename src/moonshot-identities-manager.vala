@@ -96,14 +96,14 @@ public class IdentityManagerModel : Object {
         identities.sort((a, b) => {
                 IdCard id_a = (IdCard )a;
                 IdCard id_b = (IdCard )b;
-                if (id_a.IsNoIdentity() && !id_b.IsNoIdentity()) {
+                if (id_a.is_no_identity() && !id_b.is_no_identity()) {
                     return -1;
-                } else if (id_b.IsNoIdentity() && !id_a.IsNoIdentity()) {
+                } else if (id_b.is_no_identity() && !id_a.is_no_identity()) {
                     return 1;
                 }
                 return strcmp(id_a.display_name, id_b.display_name);
             });
-        if (identities.is_empty || !identities[0].IsNoIdentity())
+        if (identities.is_empty || !identities[0].is_no_identity())
             identities.insert(0, IdCard.NewNoIdentity());
         foreach (IdCard id_card in identities) {
             if (!id_card.store_password) {
@@ -260,7 +260,7 @@ public class IdentityManagerModel : Object {
         foreach (IdCard card in this.store.get_card_list()) {
             // The 'NoIdentity' card is non-trivial if it has services or rules.
             // All other cards are automatically non-trivial.
-            if ((!card.IsNoIdentity()) || 
+            if ((!card.is_no_identity()) || 
                 (card.services.length > 0) ||
                 (card.rules.length > 0)) {
                 return true;

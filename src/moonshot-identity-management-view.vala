@@ -511,7 +511,7 @@ public class IdentityManagerView : Window {
         IdCard retval = identity;
         bool idcard_has_pw = (identity.password != null) && (identity.password != "");
         bool request_has_pw = (request.password != null) && (request.password != "");
-        if ((!idcard_has_pw) && (!identity.IsNoIdentity())) {
+        if ((!idcard_has_pw) && (!identity.is_no_identity())) {
             if (request_has_pw) {
                 identity.password = request.password;
                 retval = model.update_card(identity);
@@ -566,7 +566,7 @@ public class IdentityManagerView : Window {
         filter.refilter();
         redraw_id_card_widgets();
 
-        if ((identity != null) && (!identity.IsNoIdentity()))
+        if ((identity != null) && (!identity.is_no_identity()))
             parent_app.default_id_card = identity;
 
         request.return_identity(identity, remember_identity_binding.active);

@@ -112,7 +112,7 @@ public class IdCard : Object
 
     public bool store_password { get; set; default = false; }
 
-    public bool IsNoIdentity() 
+    public bool is_no_identity() 
     {
         return (display_name == NO_IDENTITY);
     }
