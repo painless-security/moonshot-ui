@@ -60,6 +60,8 @@ public class IdentityManagerView : Window {
 
     public GLib.Queue<IdentityRequest> request_queue;
 
+    internal CheckButton remember_identity_binding = null;
+
     private enum Columns
     {
         IDCARD_COL,
@@ -417,7 +419,6 @@ public class IdentityManagerView : Window {
         TreeIter iter;
         IdCard id_card;
 
-        var children = this.custom_vbox.get_children();
         this.custom_vbox.clear();
 
         if (filter.get_iter_first(out iter))
@@ -483,6 +484,7 @@ public class IdentityManagerView : Window {
             filter.refilter();
             redraw_id_card_widgets();
             set_prompting_service(request.service);
+            remember_identity_binding.show();
             make_visible();
         }
         this.request_queue.push_tail(request);
@@ -505,6 +507,7 @@ public class IdentityManagerView : Window {
 
     public IdCard check_add_password(IdCard identity, IdentityRequest request, IdentityManagerModel model)
     {
+        logger.trace(@"check_add_password");
         IdCard retval = identity;
         bool idcard_has_pw = (identity.password != null) && (identity.password != "");
         bool request_has_pw = (request.password != null) && (request.password != "");
@@ -566,7 +569,10 @@ public class IdentityManagerView : Window {
         if ((identity != null) && (!identity.IsNoIdentity()))
             parent_app.default_id_card = identity;
 
-        request.return_identity(identity);
+        request.return_identity(identity, remember_identity_binding.active);
+
+        remember_identity_binding.active = false;
+        remember_identity_binding.hide();
     }
 
     // private void label_make_bold(Label label)
@@ -800,8 +806,16 @@ SUCH DAMAGE.
         menubar.modify_bg(StateType.NORMAL, white);
 #endif
         main_vbox.pack_start(vbox_left, true, true, 0);
+
+        remember_identity_binding = new CheckButton.with_label(_("Remember my identity choice for this service"));
+        remember_identity_binding.active = false;
+        main_vbox.pack_start(remember_identity_binding, false, false, 6);
+
         add(main_vbox);
         main_vbox.show_all();
+
+        if (this.request_queue.length == 0)
+            remember_identity_binding.hide();
     } 
 
     private void set_atk_name_description(Widget widget, string name, string description)
