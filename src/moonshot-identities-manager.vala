@@ -86,6 +86,8 @@ public class PasswordHashTable : Object {
 }
 
 public class IdentityManagerModel : Object {
+    static MoonshotLogger logger = get_logger("IdentityManagerModel");
+
     private const string FILE_NAME = "identities.txt";
     private PasswordHashTable password_table;
     private IIdentityCardStore store;
@@ -150,6 +152,7 @@ public class IdentityManagerModel : Object {
             foreach (IdCard id_card in cards) {
                 if ((card != id_card) && (id_card.nai == card.nai)) {
                     stdout.printf("removing duplicate id for '%s'\n", card.nai);
+                    logger.trace("removing duplicate id for '%s'\n".printf(card.nai));
                     remove_card_internal(id_card);
                     found = duplicate_found = true;
                     break;
@@ -270,6 +273,7 @@ public class IdentityManagerModel : Object {
     private IdentityManagerApp parent;
 
     public IdentityManagerModel(IdentityManagerApp parent_app, IIdentityCardStore.StoreType store_type) {
+        logger.trace("IdentityManagerModel: store_type=" + store_type.to_string());
         parent = parent_app;
         password_table = new PasswordHashTable();
         set_store_type(store_type);

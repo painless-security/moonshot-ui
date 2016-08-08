@@ -66,8 +66,6 @@ class IdCardWidget : Box
 
     public void expand()
     {
-        logger.trace("expand");
-
         is_selected = true;
         update_id_card_label();
 
@@ -77,8 +75,6 @@ class IdCardWidget : Box
 
     public void collapse()
     {
-        logger.trace("collapse");
-
         is_selected = false;
         update_id_card_label();
 
