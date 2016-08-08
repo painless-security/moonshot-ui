@@ -179,6 +179,15 @@ class IdentityDialog : Dialog
             content_area.pack_start(services_vbox);
         }
 
+        if (card.is_no_identity())
+        {
+            displayname_entry.set_sensitive(false);
+            realm_entry.set_sensitive(false);
+            username_entry.set_sensitive(false);
+            password_entry.set_sensitive(false);
+            remember_checkbutton.set_sensitive(false);
+        }
+
         this.set_border_width(6);
         this.set_resizable(false);
         this.modify_bg(StateType.NORMAL, white);
@@ -231,10 +240,13 @@ class IdentityDialog : Dialog
         string preamble = "";
         string message = "";
         string password_test = store_password ? password : "not required";
-        check_field(display_name, displayname_label, displayname_labeltext, ref preamble, ref message);
-        check_field(username, username_label, username_labeltext, ref preamble, ref message);
-        check_field(issuer, realm_label, realm_labeltext, ref preamble, ref message);
-        check_field(password_test, password_label, password_labeltext, ref preamble, ref message);
+        if (!card.is_no_identity())
+        {
+            check_field(display_name, displayname_label, displayname_labeltext, ref preamble, ref message);
+            check_field(username, username_label, username_labeltext, ref preamble, ref message);
+            check_field(issuer, realm_label, realm_labeltext, ref preamble, ref message);
+            check_field(password_test, password_label, password_labeltext, ref preamble, ref message);
+        }
         if (message != "") {
             message_label.set_visible(true);
             message_label.set_markup(@"<span foreground=\"red\">$preamble$message</span>");
