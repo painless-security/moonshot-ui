@@ -287,7 +287,7 @@ class IdentityDialog : Dialog
     {
         logger.trace("make_services_vbox");
 
-        var services_vbox_alignment = new Alignment(0, 0, 0, 1);
+        var services_vbox_alignment = new Alignment(0, 0, 1, 1);
         var services_vscroll = new ScrolledWindow(null, null);
         services_vscroll.set_policy(PolicyType.NEVER, PolicyType.AUTOMATIC);
         services_vscroll.set_shadow_type(ShadowType.IN);
