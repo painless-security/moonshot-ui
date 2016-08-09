@@ -35,6 +35,11 @@ using Gtk;
 public class IdentityManagerView : Window {
     static MoonshotLogger logger = get_logger("IdentityManagerView");
 
+    // The latest year in which Moonshot sources were modified.
+    private static int LATEST_EDIT_YEAR = 2016;
+
+    public static Gdk.Color white = make_color(65535, 65535, 65535);
+
     private const int WINDOW_WIDTH = 700;
     private const int WINDOW_HEIGHT = 500;
     protected IdentityManagerApp parent_app;
@@ -627,11 +632,11 @@ public class IdentityManagerView : Window {
 
     private void on_about_action()
     {
-        string copyright = "Copyright 2011, 2016 JANET";
+        string copyright = "Copyright (c) 2011, %d JANET".printf(LATEST_EDIT_YEAR);
 
         string license =
         """
-Copyright (c) 2011, 2016 JANET(UK)
+Copyright (c) 2011, %d JANET(UK)
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -660,18 +665,24 @@ HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
 LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
 OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 SUCH DAMAGE.
-""";
+""".printf(LATEST_EDIT_YEAR);
 
-        Gtk.show_about_dialog(this,
-                              "comments", _("Moonshot project UI"),
-                              "copyright", copyright,
-                              "website", Config.PACKAGE_URL,
-                              "version", Config.PACKAGE_VERSION,
-                              "license", license,
-                              "website-label", _("Visit the Moonshot project web site"),
-                              "translator-credits", _("translator-credits"),
-                              null
-            );
+        AboutDialog about = new AboutDialog();
+
+        about.set_comments(_("Moonshot project UI"));
+        about.set_copyright(copyright);
+        about.set_website(Config.PACKAGE_URL);
+        about.set_website_label(_("Visit the Moonshot project web site"));
+
+        // Note: The package version is configured at the top of moonshot/ui/configure.ac
+        about.set_version(Config.PACKAGE_VERSION);
+        about.set_license(license);
+        about.set_modal(true);
+        about.set_transient_for(this);
+        about.response.connect((a, b) => {about.destroy();});
+        about.modify_bg(StateType.NORMAL, white);
+        
+        about.run();
     }
 
     private Gtk.ActionEntry[] create_actions() {
@@ -718,8 +729,6 @@ SUCH DAMAGE.
     private void build_ui()
     {
         // Note: On Debian7/Gtk+2, the menu bar remains gray. This doesn't happen on Debian8/Gtk+3.
-        Gdk.Color white = Gdk.Color();
-        white.red = white.green = white.blue = 65535;
         this.modify_bg(StateType.NORMAL, white);
 
         create_ui_manager();
