@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014, JANET(UK)
+ * Copyright (c) 2011-2016, JANET(UK)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -131,7 +131,9 @@ class IdCardWidget : Box
         {
             label_text += "\nUsername:  " + id_card.username;
             label_text += "\nRealm:  " + id_card.issuer;
-
+            if (!id_card.trust_anchor.is_empty()) {
+                label_text += "\nTrust anchor: " + id_card.trust_anchor.get_anchor_type();
+            }
             services_text += this.id_card.get_services_string(service_spacer);
             label_text += "\n" + services_text;
         }

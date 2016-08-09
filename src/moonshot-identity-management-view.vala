@@ -542,14 +542,19 @@ public class IdentityManagerView : Window {
 
     private void send_identity_cb(IdCard id)
     {
-        send_button.set_sensitive(false);
-
-        IdCard identity = id;
         return_if_fail(request_queue.length > 0);
 
-        candidates = null;
+        if (!check_and_confirm_trust_anchor(id)) {
+            // Allow user to pick again
+            return;
+        }
+
         var request = this.request_queue.pop_head();
-        identity = check_add_password(identity, request, identities_manager);
+        var identity = check_add_password(id, request, identities_manager);
+        send_button.set_sensitive(false);
+
+        candidates = null;
+      
         if (this.request_queue.is_empty())
         {
             candidates = null;
@@ -577,6 +582,34 @@ public class IdentityManagerView : Window {
         remember_identity_binding.active = false;
         remember_identity_binding.hide();
     }
+
+    private bool check_and_confirm_trust_anchor(IdCard id)
+    {
+        if (!id.trust_anchor.is_empty() && id.trust_anchor.get_anchor_type() == TrustAnchor.TYPE_ENTERPRISE) {
+            if (get_string_setting("TrustAnchors", id.nai) != id.trust_anchor.server_cert) {
+
+                bool ret = false;
+                int result = ResponseType.CANCEL;
+                var dialog = new TrustAnchorDialog(id, this);
+                while (!dialog.complete)
+                    result = dialog.run();
+
+                switch (result) {
+                case ResponseType.OK:
+                    set_string_setting("TrustAnchors", id.nai, id.trust_anchor.server_cert);
+                    ret = true;
+                    break;
+                default:
+                    break;
+                }
+
+                dialog.destroy();
+                return ret;
+            }
+        }
+        return true;
+    }
+
 
     // private void label_make_bold(Label label)
     // {

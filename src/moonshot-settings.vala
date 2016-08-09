@@ -135,3 +135,40 @@ internal bool get_bool_setting(string group_name, string key_name, bool default=
     }
     return default;
 }
+
+
+internal void set_string_setting(string group_name, string key_name, string value)
+{
+    KeyFile key_file = get_keyfile();
+
+    key_file.set_string(group_name, key_name, value);
+    save_keyfile(key_file);
+}
+
+internal string get_string_setting(string group_name, string key_name, string default="")
+{
+    KeyFile key_file = get_keyfile();
+
+    if (key_file == null)
+        return default;
+
+    try {
+        if (!key_file.has_key(group_name, key_name))
+        {
+            logger().info(@"get_string_setting : key file doesn't contain key '$key_name' in group '$group_name'");
+            return default;
+        }
+    }
+    catch(KeyFileError e) {
+        logger().info(@"get_string_setting : KeyFileError checking if key '$key_name' exists in group '$group_name' (maybe ignorable?) : " + e.message);
+    }
+
+    try {
+        // throws KeyFileError if key is not found
+        return key_file.get_string(group_name, key_name);
+    }
+    catch (KeyFileError e) {
+        logger().info("get_string_setting got KeyFileError (may be ignorable) : " + e.message);
+    }
+    return default;
+}

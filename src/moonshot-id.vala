@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014, JANET(UK)
+ * Copyright (c) 2011-2016, JANET(UK)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,10 +34,60 @@ using Gee;
 
 public class TrustAnchor : Object
 {
-    public string ca_cert {get; set; default = "";}
-    public string subject {get; set; default = "";}
-    public string subject_alt  {get; set; default = "";}
-    public string server_cert  {get; set; default = "";}
+    public static const string TYPE_CA_CERT = _("CA Certificate");
+    public static const string TYPE_ENTERPRISE = _("Enterprise provisioned");
+
+ 
+    private string _ca_cert = "";
+    private string _subject = "";
+    private string _subject_alt = "";
+    private string _server_cert = "";
+
+    public string ca_cert {
+        get {
+            return _ca_cert;
+        }
+        set {
+            _ca_cert = (value ?? "");
+        }
+    }
+
+    public string subject {
+        get {
+            return _subject;
+        }
+        set {
+            _subject = (value ?? "");
+        }
+    }
+
+    public string subject_alt  {
+        get {
+            return _subject_alt;
+        }
+        set {
+            _subject_alt = (value ?? "");
+        }
+    }
+
+
+    public string server_cert {
+        get {
+            return _server_cert;
+        }
+        set {
+            _server_cert = (value ?? "");
+        }
+    }
+
+    public bool is_empty() {
+        return ca_cert == "" && subject == "" && subject_alt == "" && server_cert == "";
+    }
+
+    public string get_anchor_type() {
+        return server_cert == "" ? TYPE_CA_CERT : TYPE_ENTERPRISE;
+    }
+
     public int Compare(TrustAnchor other)
     {
         if (this.ca_cert != other.ca_cert)
