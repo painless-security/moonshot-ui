@@ -73,7 +73,7 @@ class AddPasswordDialog : Dialog
         password_label.set_alignment(0, (float) 1);
         this.password_entry = new Entry();
         password_entry.set_invisible_char('*');
-        //?? password_entry.set_visibility(false);
+        password_entry.set_visibility(false);
         password_entry.activates_default = true;
         remember_checkbutton = new CheckButton.with_label(_("Remember password"));
 
