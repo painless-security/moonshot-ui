@@ -123,7 +123,7 @@ class IdCardWidget : Box
     {
         // !!TODO: Use a table to format the labels and values
         string services_text = "Services:  ";
-        string service_spacer = "                ";
+        string service_spacer = "\n                ";
 
         var label_text = Markup.printf_escaped("<big>%s</big>", this.id_card.display_name);
 
@@ -132,14 +132,7 @@ class IdCardWidget : Box
             label_text += "\nUsername:  " + id_card.username;
             label_text += "\nRealm:  " + id_card.issuer;
 
-            var sep = "";
-            for (int i = 0; i < id_card.services.length; i++)
-            {
-                services_text += sep;
-                services_text += id_card.services[i];
-
-                sep = "\n" + service_spacer;
-            }
+            services_text += this.id_card.get_services_string(service_spacer);
             label_text += "\n" + services_text;
         }
 

@@ -182,8 +182,10 @@ public class IdentityManagerModel : Object {
     }
 
     public void add_card(IdCard card, bool force_flat_file_store) {
-        if (card.temporary)
+        if (card.temporary) {
+            logger.trace("add_card: card is temporary; returning.");
             return;
+        }
 
         string candidate;
         IIdentityCardStore.StoreType saved_store_type = get_store_type();
@@ -200,12 +202,18 @@ public class IdentityManagerModel : Object {
 
         if (!card.store_password)
             password_table.CachePassword(card, store);
+
+        logger.trace("add_card: Storing card '%s' with services: '%s'"
+                     .printf(card.display_name, card.get_services_string("; ")));
+
         store.add_card(card);
         set_store_type(saved_store_type);
         card_list_changed();
     }
 
     public IdCard update_card(IdCard card) {
+        logger.trace("update_card");
+
         IdCard retval;
         if (card.temporary) {
             retval = card;
@@ -261,7 +269,7 @@ public class IdentityManagerModel : Object {
             // The 'NoIdentity' card is non-trivial if it has services or rules.
             // All other cards are automatically non-trivial.
             if ((!card.is_no_identity()) || 
-                (card.services.length > 0) ||
+                (card.services.size > 0) ||
                 (card.rules.length > 0)) {
                 return true;
             }

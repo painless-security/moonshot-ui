@@ -90,7 +90,11 @@ namespace WebProvisioning
         
             /* use temp arrays to workaround centos array property bug */
             var rules = card.rules;
-            var services = card.services;
+            string[] svcs = new string[card.services.size];
+            for (int i = 0; i < card.services.size; i++) {
+                svcs[i] = card.services[i];
+            }
+
             if (rules.length > 0)
             {
                 int i = 0;
@@ -111,7 +115,7 @@ namespace WebProvisioning
                                      card.issuer,
                                      rules_patterns,
                                      rules_always_confirm,
-                                     services,
+                                     svcs,
                                      card.trust_anchor.ca_cert,
                                      card.trust_anchor.subject,
                                      card.trust_anchor.subject_alt,

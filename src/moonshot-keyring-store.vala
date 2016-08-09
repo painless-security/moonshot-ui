@@ -33,19 +33,27 @@ using Gee;
 
 #if GNOME_KEYRING
 public class KeyringStore : Object, IIdentityCardStore {
+    static MoonshotLogger logger = get_logger("KeyringStore");
+
     private LinkedList<IdCard> id_card_list;
     private const string keyring_store_attribute = "Moonshot";
     private const string keyring_store_version = "1.0";
     private const GnomeKeyring.ItemType item_type = GnomeKeyring.ItemType.GENERIC_SECRET;
 
     public void add_card(IdCard card) {
+        logger.trace("add_card: Adding card '%s' with services: '%s'"
+                     .printf(card.display_name, card.get_services_string("; ")));
+
         id_card_list.add(card);
         store_id_cards();
     }
 
     public IdCard? update_card(IdCard card) {
+        logger.trace("update_card");
+
         id_card_list.remove(card);
         id_card_list.add(card);
+
         store_id_cards();
         foreach (IdCard idcard in id_card_list) {
             if (idcard.display_name == card.display_name) {
@@ -107,7 +115,7 @@ public class KeyringStore : Object, IIdentityCardStore {
                 } else if (attribute.name == "DisplayName") {
                     id_card.display_name = value;
                 } else if (attribute.name == "Services") {
-                    id_card.services = value.split(";");
+                    id_card.update_services(value.split(";"));
                 } else if (attribute.name == "Rules-Pattern") {
                     rules_patterns_index = i;
                 } else if (attribute.name == "Rules-AlwaysConfirm") {
@@ -153,11 +161,11 @@ public class KeyringStore : Object, IIdentityCardStore {
     }
 
     public void store_id_cards() {
+        logger.trace("store_id_cards");
         clear_keyring();
         foreach (IdCard id_card in this.id_card_list) {
             /* workaround for Centos vala array property bug: use temp array */
             var rules = id_card.rules;
-            var services_array = id_card.services;
             string[] rules_patterns = new string[rules.length];
             string[] rules_always_conf = new string[rules.length];
             
@@ -167,7 +175,7 @@ public class KeyringStore : Object, IIdentityCardStore {
             }
             string patterns = string.joinv(";", rules_patterns);
             string always_conf = string.joinv(";", rules_always_conf);
-            string services = string.joinv(";", services_array);
+            string services = id_card.get_services_string(";");
             GnomeKeyring.AttributeList attributes = new GnomeKeyring.AttributeList();
             uint32 item_id;
             attributes.append_string(keyring_store_attribute, keyring_store_version);

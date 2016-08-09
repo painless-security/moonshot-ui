@@ -125,7 +125,13 @@ public class IdentityManagerApp {
     }
 
     public bool add_identity(IdCard id, bool force_flat_file_store) {
-        if (view != null) return view.add_identity(id, force_flat_file_store);
+        if (view != null) 
+        {
+            logger.trace("add_identity: calling view.add_identity");
+            return view.add_identity(id, force_flat_file_store);
+        }
+
+        logger.trace("add_identity: calling model.add_card");
         model.add_card(id, force_flat_file_store);
         return true;
     }
@@ -158,13 +164,8 @@ public class IdentityManagerApp {
                 /* If any service matches we add id card to the candidate list */
                 if (has_srv)
                 {
-                    foreach (string srv in id.services)
-                    {
-                        if (request.service == srv)
-                        {
-                            request.candidates.append(id);
-                            continue;
-                        }
+                    if (id.services.contains(request.service)) {
+                        request.candidates.append(id);
                     }
                 }
             }
@@ -174,37 +175,7 @@ public class IdentityManagerApp {
             {
                 foreach (IdCard id in request.candidates)
                 {
-                    int i = 0;
-                    SList<string> services_list = null;
-                    bool has_service = false;
-
-                    foreach (string srv in id.services)
-                    {
-                        if (srv == request.service)
-                        {
-                            has_service = true;
-                            continue;
-                        }
-                        services_list.append(srv);
-                    }
-                    
-                    if (!has_service)
-                        continue;
-
-                    if (services_list.length() == 0)
-                    {
-                        id.services = {};
-                        continue;
-                    }
-
-                    string[] services = new string[services_list.length()];
-                    foreach (string srv in services_list)
-                    {
-                        services[i] = srv;
-                        i++;
-                    }
-
-                    id.services = services;
+                    id.services.remove(request.service);
                 }
             }
 

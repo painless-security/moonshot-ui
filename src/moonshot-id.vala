@@ -29,6 +29,9 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
 */
+
+using Gee;
+
 public class TrustAnchor : Object
 {
     public string ca_cert {get; set; default = "";}
@@ -64,6 +67,8 @@ public struct Rule
 
 public class IdCard : Object
 {
+    static MoonshotLogger logger = get_logger("IdCard");
+
     public const string NO_IDENTITY = "No Identity";
 
     private string _nai;
@@ -98,11 +103,59 @@ public class IdCard : Object
         internal set {_rules = value ?? new Rule[0] ;}
     }
 
-    private string[] _services = new string[0];
-    public string[] services {
-        get {return _services;}
-        internal set {_services = value ?? new string[0] ;}
+    private ArrayList<string> _services = new ArrayList<string>();
+
+    internal ArrayList<string> services {
+         get {return  _services;}
     }
+
+    // Returns the list of services as a string, using the given separator.
+    internal string get_services_string(string sep) {
+        if (_services.is_empty) {
+            return "";
+        }
+
+        // ArrayList.to_array() seems to be unreliable -- it causes segfaults 
+        // semi-randomly. (Possibly because it returns an unowned ref?)
+        // return string.joinv(sep, _services.to_array());
+        // 
+        // This problem may be related to the one noted elsewhere as the
+        // "Centos vala array property bug".
+
+        string[] svcs = new string[_services.size];
+        for (int i = 0; i < _services.size; i++) {
+            svcs[i] = _services[i];
+        }
+
+        return string.joinv(sep, svcs);
+    }
+
+    internal void update_services(string[] services) {
+        _services.clear();
+
+        // Doesn't exist in older versions of libgee:
+        // _services.add_all_array(services);
+
+        if (services != null) {
+            foreach (string s in services) {
+                _services.add(s);
+            }
+        }
+    } 
+
+    internal void update_services_from_list(ArrayList<string> services) {
+        if (services == this._services) {
+            // Don't try to update from self.
+            return;
+        }
+
+        _services.clear();
+
+        if (services != null) {
+            _services.add_all(services);
+        }
+    } 
+
 
     public bool temporary {get; set; default = false; }
 
@@ -145,7 +198,7 @@ public class IdCard : Object
         if (CompareRules(this.rules, other.rules)!=0)
             diff |= 1 << DiffFlags.RULES;
 
-        if (CompareStringArray(this.services, other.services)!=0)
+        if (CompareStringArrayList(this._services, other._services)!=0)
             diff |= 1 << DiffFlags.SERVICES;
 
         if (this.trust_anchor.Compare(other.trust_anchor)!=0)
@@ -169,10 +222,6 @@ public class IdCard : Object
     internal void add_rule(Rule rule) {
         _rules += rule;
     }
-
-    internal void add_service(string service) {
-        _services += service;
-    }
 }
 
 public int CompareRules(Rule[] a, Rule[] b)
@@ -189,13 +238,13 @@ public int CompareRules(Rule[] a, Rule[] b)
     return 0;
 }
 
-public int CompareStringArray(string[] a, string [] b)
+public int CompareStringArrayList(ArrayList<string> a, ArrayList<string> b)
 {
-    if (a.length != b.length) {
+    if (a.size != b.size) {
         return 1;
     }
 
-    for (int i = 0; i < a.length; i++) {
+    for (int i = 0; i < a.size; i++) {
         if (a[i] != b[i]) {
             return 1;
         }

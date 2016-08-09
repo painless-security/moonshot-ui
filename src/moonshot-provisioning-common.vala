@@ -169,7 +169,7 @@ namespace WebProvisioning
                 }
                 else if (stack.nth_data(0) == "service")
                 {
-                    card.add_service(text);
+                    card.services.add(text);
                 }
 
                 /* Rules */

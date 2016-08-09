@@ -29,6 +29,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
 */
+
+using Gee;
 using Gtk;
 
 
@@ -87,7 +89,7 @@ class IdentityDialog : Dialog
         get { return remember_checkbutton.active; }
     }
 
-    internal string[] get_services()
+    internal ArrayList<string> get_services()
     {
         return card.services;
     }
@@ -300,7 +302,7 @@ class IdentityDialog : Dialog
         remove_button.set_sensitive(false);
 
 
-        var services_table = new Table(card.services.length, 1, false);
+        var services_table = new Table(card.services.size, 1, false);
         services_table.set_row_spacings(1);
         services_table.set_col_spacings(0);
         services_table.modify_bg(StateType.NORMAL, white);
@@ -383,20 +385,7 @@ class IdentityDialog : Dialog
                 if (result)
                 {
                     if (card != null) {
-                        SList<string> services = new SList<string>();
-
-                        foreach (string srv in card.services)
-                        {
-                            if (srv != selected_item.label)
-                                services.append(srv);
-                        }
-
-                        card.services = new string[services.length()];
-                        for (int j = 0; j < card.services.length; j++)
-                        {
-                            card.services[j] = services.nth_data(j);
-                        }
-
+                        card.services.remove(selected_item.label);
                         services_table.remove(selected_item.parent);
                         selected_item = null;
                         remove_button.set_sensitive(false);

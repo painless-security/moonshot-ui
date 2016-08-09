@@ -197,11 +197,14 @@ public class MoonshotServer : Object {
         if ((password != null) && (password != ""))
             idcard.store_password = true;
         idcard.issuer = realm;
-        idcard.services = services;
+        idcard.update_services(services);
         idcard.trust_anchor.ca_cert = ca_cert;
         idcard.trust_anchor.subject = subject;
         idcard.trust_anchor.subject_alt = subject_alt;
         idcard.trust_anchor.server_cert = server_cert;
+
+        logger.trace("install_id_card: Card '%s' has services: '%s'"
+                     .printf(idcard.display_name, idcard.get_services_string("; ")));
 
         if (rules_patterns.length == rules_always_confirm.length)
         {
@@ -245,13 +248,25 @@ public class MoonshotServer : Object {
                 }
             } 
 
+
+            // prevent a crash by holding the reference to otherwise
+            // unowned array(?)
+
+            // string[] svcs = card.services.to_array();
+            // string[] svcs = card.services.to_array()[:];
+            string[] svcs = new string[card.services.size];
+            for (int i = 0; i < card.services.size; i++) {
+                svcs[i] = card.services[i];
+            }
+
+            logger.trace(@"install_from_file: Adding card with display name '$(card.display_name)'");
             result = install_id_card(card.display_name,
                                      card.username,
                                      card.password,
                                      card.issuer,
                                      rules_patterns,
                                      rules_always_confirm,
-                                     card.services,
+                                     svcs,
                                      card.trust_anchor.ca_cert,
                                      card.trust_anchor.subject,
                                      card.trust_anchor.subject_alt,

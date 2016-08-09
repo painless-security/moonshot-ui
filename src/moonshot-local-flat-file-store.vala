@@ -88,7 +88,7 @@ public class LocalFlatFileStore : Object, IIdentityCardStore {
                 id_card.issuer = key_file.get_string(identity, "Issuer");
                 id_card.username = key_file.get_string(identity, "Username");
                 id_card.password = key_file.get_string(identity, "Password");
-                id_card.services = key_file.get_string_list(identity, "Services");
+                id_card.update_services(key_file.get_string_list(identity, "Services"));
                 id_card.display_name = key_file.get_string(identity, "DisplayName");
                 if (key_file.has_key(identity, "StorePassword")) {
                     id_card.store_password = (key_file.get_string(identity, "StorePassword") == "yes");
@@ -140,7 +140,6 @@ public class LocalFlatFileStore : Object, IIdentityCardStore {
         foreach (IdCard id_card in this.id_card_list) {
             /* workaround for Centos vala array property bug: use temp arrays */
             var rules = id_card.rules;
-            var services = id_card.services;
             string[] empty = {};
             string[] rules_patterns = new string[rules.length];
             string[] rules_always_conf = new string[rules.length];
@@ -157,7 +156,15 @@ public class LocalFlatFileStore : Object, IIdentityCardStore {
                 key_file.set_string(id_card.display_name, "Password", id_card.password);
             else
                 key_file.set_string(id_card.display_name, "Password", "");
-            key_file.set_string_list(id_card.display_name, "Services", services ?? empty);
+
+            // Using id_card.services.to_array() seems to cause a crash, possibly due to
+            // an unowned reference to the array.
+            string[] svcs = new string[id_card.services.size];
+            for (int i = 0; i < id_card.services.size; i++) {
+                svcs[i] = id_card.services[i];
+            }
+
+            key_file.set_string_list(id_card.display_name, "Services", svcs);
 
             if (rules.length > 0) {
                 key_file.set_string_list(id_card.display_name, "Rules-Patterns", rules_patterns);

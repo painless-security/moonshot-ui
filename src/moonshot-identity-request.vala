@@ -88,17 +88,13 @@ public class IdentityRequest : Object {
         /* update id_card service list */
         if (update_card && id_card != null && this.service != null && this.service != "")
         {
-            bool duplicate_service = false;
-
-            foreach (string service in id_card.services)
-            {
-                if (service == this.service)
-                    duplicate_service = true;
-            }
+            bool duplicate_service = id_card.services.contains(this.service);
             logger.trace("return_identity: duplicate_service=" + duplicate_service.to_string());
             if (duplicate_service == false)
             {
-                id_card.add_service(this.service);
+                logger.trace("return_identity: calling add_service");
+                id_card.services.add(this.service);
+                logger.trace("return_identity: back from add_service");
 
                 this.id_card = this.parent_app.model.update_card(id_card);
             }

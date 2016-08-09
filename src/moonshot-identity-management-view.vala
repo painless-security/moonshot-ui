@@ -151,7 +151,7 @@ public class IdentityManagerView : Window {
                     return true;
             }
             
-            if (id_card.services.length > 0)
+            if (id_card.services.size > 0)
             {
                 foreach (string service in id_card.services)
                 {
@@ -226,6 +226,7 @@ public class IdentityManagerView : Window {
         }
 
         foreach (IdCard id_card in card_list) {
+            logger.trace(@"load_id_cards: Adding card with display name '$(id_card.display_name)'");
             add_id_card_data(id_card);
             IdCardWidget id_card_widget = add_id_card_widget(id_card);
             if (id_card_widget.id_card.nai == current_idcard_nai) {
@@ -242,7 +243,8 @@ public class IdentityManagerView : Window {
         id_card.username = dialog.username;
         id_card.password = dialog.password;
         id_card.store_password = dialog.store_password;
-        id_card.services = dialog.get_services();
+
+        id_card.update_services_from_list(dialog.get_services());
 
         return id_card;
     }
@@ -322,7 +324,8 @@ public class IdentityManagerView : Window {
         #else
         Gtk.MessageDialog dialog;
         IdCard? prev_id = identities_manager.find_id_card(id_card.nai, force_flat_file_store);
-        logger.trace("add_identity: find_id_card returned " + (prev_id != null ? "non-null" : "null"));
+        logger.trace("add_identity(flat=%s, card='%s'): find_id_card returned %s"
+                     .printf(force_flat_file_store.to_string(), id_card.display_name, (prev_id != null ? "non-null" : "null")));
         if (prev_id!=null) {
             int flags = prev_id.Compare(id_card);
             logger.trace("add_identity: compare returned " + flags.to_string());
