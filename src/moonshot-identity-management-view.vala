@@ -590,7 +590,7 @@ public class IdentityManagerView : Window {
 
     private bool check_and_confirm_trust_anchor(IdCard id)
     {
-        if (!id.trust_anchor.is_empty() && id.trust_anchor.get_anchor_type() == TrustAnchor.TYPE_ENTERPRISE) {
+        if (!id.trust_anchor.is_empty() && id.trust_anchor.get_anchor_type() == TrustAnchor.TrustAnchorType.SERVER_CERT) {
             if (get_string_setting("TrustAnchors", id.nai) != id.trust_anchor.server_cert) {
 
                 bool ret = false;

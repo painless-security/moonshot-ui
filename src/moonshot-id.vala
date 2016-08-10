@@ -34,9 +34,10 @@ using Gee;
 
 public class TrustAnchor : Object
 {
-    public static const string TYPE_CA_CERT = _("CA Certificate");
-    public static const string TYPE_ENTERPRISE = _("Enterprise provisioned");
-
+    public enum TrustAnchorType {
+        CA_CERT,
+        SERVER_CERT
+    }
  
     private string _ca_cert = "";
     private string _subject = "";
@@ -84,8 +85,8 @@ public class TrustAnchor : Object
         return ca_cert == "" && subject == "" && subject_alt == "" && server_cert == "";
     }
 
-    public string get_anchor_type() {
-        return server_cert == "" ? TYPE_CA_CERT : TYPE_ENTERPRISE;
+    public TrustAnchorType get_anchor_type() {
+        return server_cert == "" ? TrustAnchorType.CA_CERT : TrustAnchorType.SERVER_CERT;
     }
 
     public int Compare(TrustAnchor other)

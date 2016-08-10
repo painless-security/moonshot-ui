@@ -122,20 +122,20 @@ class IdCardWidget : Box
     update_id_card_label()
     {
         // !!TODO: Use a table to format the labels and values
-        string services_text = "Services:  ";
-        string service_spacer = "\n                ";
+        string services_text = _("Services:  ");
+        string service_spacer = _("\n                ");
 
-        var label_text = Markup.printf_escaped("<big>%s</big>", this.id_card.display_name);
+        var label_text = Markup.printf_escaped(_("<big>%s</big>"), this.id_card.display_name);
 
         if (is_selected)
         {
             label_text += "\nUsername:  " + id_card.username;
             label_text += "\nRealm:  " + id_card.issuer;
             if (!id_card.trust_anchor.is_empty()) {
-                label_text += "\nTrust anchor: " + id_card.trust_anchor.get_anchor_type();
+                label_text += _("\nTrust anchor: Enterprise provisioned");
             }
             services_text += this.id_card.get_services_string(service_spacer);
-            label_text += "\n" + services_text;
+            label_text += _("\n") + services_text;
         }
 
         label.set_markup(label_text);
