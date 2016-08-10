@@ -287,7 +287,7 @@ class IdentityDialog : Dialog
     {
         logger.trace("make_services_vbox");
 
-        var services_vbox_alignment = new Alignment(0, 0, 1, 1);
+        var services_vbox_alignment = new Alignment(0, 0, 1, 0);
         var services_vscroll = new ScrolledWindow(null, null);
         services_vscroll.set_policy(PolicyType.NEVER, PolicyType.AUTOMATIC);
         services_vscroll.set_shadow_type(ShadowType.IN);
@@ -335,6 +335,7 @@ class IdentityDialog : Dialog
         {
             var label = new Label(service);
             label.set_alignment((float) 0, (float) 0);
+            label.xpad = 3;
 
             EventBox event_box = new EventBox();
             event_box.modify_bg(StateType.NORMAL, white);
@@ -368,8 +369,7 @@ class IdentityDialog : Dialog
                     return false;
                 });
 
-            AttachOptions opts = AttachOptions.EXPAND | AttachOptions.FILL;
-            services_table.attach(event_box, 0, 1, i, i+1, opts, opts, 3, 0);
+            services_table.attach_defaults(event_box, 0, 1, i, i+1);
             i++;
         }
 

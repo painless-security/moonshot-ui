@@ -46,7 +46,7 @@ class TrustAnchorDialog : Dialog
         this.set_transient_for(parent);
         this.modify_bg(StateType.NORMAL, white);
 
-        this.add_buttons(_("Connect"), ResponseType.OK,
+        this.add_buttons(_("Confirm"), ResponseType.OK,
                          _("Cancel"), ResponseType.CANCEL);
 
         this.set_default_response(ResponseType.OK);
@@ -73,22 +73,19 @@ class TrustAnchorDialog : Dialog
         var fingerprint_label = new Label(_("SHA-256 fingerprint:"));
         fingerprint_label.set_alignment(0, 0.5f);
 
-        var footprint = new TextView();
-        //footprint.activates_default = false;
-        // footprint.set_sensitive(false);
-        footprint.set_editable(false);
-        // footprint.set_text(idcard.trust_anchor.server_cert);
-        var buffer = footprint.get_buffer();
+        var fingerprint = new TextView();
+        fingerprint.set_editable(false);
+        var buffer = fingerprint.get_buffer();
         buffer.set_text(colonize(idcard.trust_anchor.server_cert), -1);
-        footprint.wrap_mode = WrapMode.WORD_CHAR;
+        fingerprint.wrap_mode = WrapMode.WORD_CHAR;
 
-        set_atk_relation(fingerprint_label, footprint, Atk.RelationType.LABEL_FOR);
+        set_atk_relation(fingerprint_label, fingerprint, Atk.RelationType.LABEL_FOR);
 
-        var footprint_width_constraint = new ScrolledWindow(null, null);
-        footprint_width_constraint.set_policy(PolicyType.NEVER, PolicyType.NEVER);
-        footprint_width_constraint.set_shadow_type(ShadowType.IN);
-        footprint_width_constraint.set_size_request(400, 60);
-        footprint_width_constraint.add_with_viewport(footprint);
+        var fingerprint_width_constraint = new ScrolledWindow(null, null);
+        fingerprint_width_constraint.set_policy(PolicyType.NEVER, PolicyType.NEVER);
+        fingerprint_width_constraint.set_shadow_type(ShadowType.IN);
+        fingerprint_width_constraint.set_size_request(400, 60);
+        fingerprint_width_constraint.add_with_viewport(fingerprint);
 
         Label confirm_label = new Label(_("Please confirm that this is the correct trust anchor."));
         confirm_label.set_alignment(0, 0.5f);
@@ -99,7 +96,7 @@ class TrustAnchorDialog : Dialog
         vbox.pack_start(user_label, true, true, 2);
         vbox.pack_start(realm_label, true, true, 2);
         vbox.pack_start(fingerprint_label, true, true, 2);
-        vbox.pack_start(footprint_width_constraint, true, true, 2);
+        vbox.pack_start(fingerprint_width_constraint, true, true, 2);
         vbox.pack_start(confirm_label, true, true, 12);
 
         ((Container) content_area).add(vbox);
