@@ -175,6 +175,9 @@ class IdentityDialog : Dialog
         this.response.connect(on_response);
         content_area.set_border_width(6);
 
+        Widget trust_anchor_box = make_trust_anchor_box(card);
+        content_area.pack_start(trust_anchor_box, false, false, 15);
+
         if (!is_new_card)
         {
             var services_vbox = make_services_vbox();
@@ -194,6 +197,74 @@ class IdentityDialog : Dialog
         this.set_resizable(false);
         this.modify_bg(StateType.NORMAL, white);
         this.show_all();
+    }
+
+    private static Widget make_trust_anchor_box(IdCard id)
+    {
+
+        Label ta_label = new Label(_("Trust anchor: ")
+                                   + (id.trust_anchor.is_empty() ? _("None") : _("Enterprise provisioned")));
+        ta_label.set_alignment(0, 0.5f);
+
+        if (id.trust_anchor.is_empty()) {
+            return ta_label;
+        }
+
+
+        AttachOptions opts = AttachOptions.EXPAND | AttachOptions.FILL;
+        AttachOptions fill = AttachOptions.FILL;
+
+        Table ta_table = new Table(6, 2, false);
+        int row = 0;
+
+        var ta_clear_button = new Button.with_label(_("Clear Trust Anchor"));
+        ta_clear_button.clicked.connect((w) => {id.trust_anchor = new TrustAnchor();});
+
+        ta_table.attach(ta_label, 0, 1, row, row + 1, opts, opts, 0, 0);
+        ta_table.attach(ta_clear_button, 1, 2, row, row + 1, fill, fill, 0, 0);
+        row++;
+
+        //!!TODO
+        Label added_label = new Label(_("Added on: N/A"));
+        added_label.set_alignment(0, 0.5f);
+        ta_table.attach(added_label, 0, 1, row, row + 1, opts, opts, 20, 5);
+        row++;
+
+        if (id.trust_anchor.get_anchor_type() == TrustAnchor.TrustAnchorType.SERVER_CERT) {
+            Widget fingerprint = make_ta_fingerprint_widget(id.trust_anchor);
+            ta_table.attach(fingerprint, 0, 2, row, row + 2, opts, opts, 20, 5);
+        }
+        else {
+            Label ca_cert_label = new Label(_("CA Certificate:"));
+            ca_cert_label.set_alignment(0, 0.5f);
+            var export_button = new Button.with_label(_("Export Certificate"));
+            //!!TODO!
+            export_button.clicked.connect((w) => {/* !!TODO! */});
+
+            ta_table.attach(ca_cert_label, 0, 1, row, row + 1, opts, opts, 20, 0);
+            ta_table.attach(export_button, 1, 2, row, row + 1, fill, fill, 0, 0);
+            row++;
+
+            //!!TODO: When to show Subject, and when (if ever) show Subject-Altname here?
+            Label subject_label = new Label(_("Subject: ") + id.trust_anchor.subject);
+            subject_label.set_alignment(0, 0.5f);
+            ta_table.attach(subject_label, 0, 1, row, row + 1, opts, opts, 40, 5);
+            row++;
+
+            Label expiration_label = new Label(_("Expiration date: ") + id.trust_anchor.get_expiration_date());
+            expiration_label.set_alignment(0, 0.5f);
+            ta_table.attach(expiration_label, 0, 1, row, row + 1, opts, opts, 40, 5);
+            row++;
+
+            //!!TODO: What *is* this?
+            Label constraint_label = new Label(_("Constraint: "));
+            constraint_label.set_alignment(0, 0.5f);
+            ta_table.attach(constraint_label, 0, 1, row, row + 1, opts, opts, 20, 0);
+            row++;
+        }
+
+        return ta_table;
+
     }
 
     private static void add_as_vbox(Box content_area, Label label, Entry entry)
@@ -313,7 +384,7 @@ class IdentityDialog : Dialog
         // Hack to prevent the button from growing vertically
         VBox fixed_height = new VBox(false, 0);
         fixed_height.pack_start(remove_button, false, false, 0);
-        table_button_hbox.pack_start(fixed_height, false, false, 6);
+        table_button_hbox.pack_start(fixed_height, false, false, 0);
 
         // A table doesn't have a background color, so put it in an EventBox, and
         // set the EventBox's background color instead.
@@ -324,11 +395,11 @@ class IdentityDialog : Dialog
 
         var services_vbox_title = new Label(_("Services:"));
         label_make_bold(services_vbox_title);
-        services_vbox_title.set_alignment(0, (float) 0.5);
+        services_vbox_title.set_alignment(0, 0.5f);
 
         var services_vbox = new VBox(false, 6);
-        services_vbox.pack_start(services_vbox_title, false, false, 6);
-        services_vbox.pack_start(table_button_hbox, true, true, 6);
+        services_vbox.pack_start(services_vbox_title, false, false, 0);
+        services_vbox.pack_start(table_button_hbox, true, true, 0);
 
         int i = 0;
         foreach (string service in card.services)

@@ -121,3 +121,45 @@ internal void set_atk_relation(Widget widget, Widget target_widget, Atk.Relation
 
     atk_widget.add_relationship(relationship, atk_target_widget);
 }
+
+
+internal Widget make_ta_fingerprint_widget(TrustAnchor trust_anchor)
+{
+        var fingerprint_label = new Label(_("SHA-256 fingerprint:"));
+        fingerprint_label.set_alignment(0, 0.5f);
+
+        var fingerprint = new TextView();
+        fingerprint.set_editable(false);
+        var buffer = fingerprint.get_buffer();
+        buffer.set_text(colonize(trust_anchor.server_cert), -1);
+        fingerprint.wrap_mode = WrapMode.WORD_CHAR;
+
+        set_atk_relation(fingerprint_label, fingerprint, Atk.RelationType.LABEL_FOR);
+
+        var fingerprint_width_constraint = new ScrolledWindow(null, null);
+        fingerprint_width_constraint.set_policy(PolicyType.NEVER, PolicyType.NEVER);
+        fingerprint_width_constraint.set_shadow_type(ShadowType.IN);
+        fingerprint_width_constraint.set_size_request(400, 60);
+        fingerprint_width_constraint.add_with_viewport(fingerprint);
+
+        var vbox = new VBox(false, 0);
+        vbox.pack_start(fingerprint_label, true, true, 2);
+        vbox.pack_start(fingerprint_width_constraint, true, true, 2);
+        return vbox;
+}
+
+    // Yeah, it doesn't mean "colonize" the way you might think... :-)
+internal static string colonize(string input) {
+    return_if_fail(input.length % 2 == 0);
+
+    string result = "";
+    int i = 0;
+    while (i < input.length) {
+        if (i > 0) {
+            result += ":";
+        }
+        result += input[i : i + 2];
+        i += 2;
+    }
+    return result;
+}

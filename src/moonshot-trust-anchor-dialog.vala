@@ -70,33 +70,17 @@ class TrustAnchorDialog : Dialog
         var realm_label = new Label(_("Realm: ") + idcard.issuer);
         realm_label.set_alignment(0, 0.5f);
 
-        var fingerprint_label = new Label(_("SHA-256 fingerprint:"));
-        fingerprint_label.set_alignment(0, 0.5f);
-
-        var fingerprint = new TextView();
-        fingerprint.set_editable(false);
-        var buffer = fingerprint.get_buffer();
-        buffer.set_text(colonize(idcard.trust_anchor.server_cert), -1);
-        fingerprint.wrap_mode = WrapMode.WORD_CHAR;
-
-        set_atk_relation(fingerprint_label, fingerprint, Atk.RelationType.LABEL_FOR);
-
-        var fingerprint_width_constraint = new ScrolledWindow(null, null);
-        fingerprint_width_constraint.set_policy(PolicyType.NEVER, PolicyType.NEVER);
-        fingerprint_width_constraint.set_shadow_type(ShadowType.IN);
-        fingerprint_width_constraint.set_size_request(400, 60);
-        fingerprint_width_constraint.add_with_viewport(fingerprint);
-
         Label confirm_label = new Label(_("Please confirm that this is the correct trust anchor."));
         confirm_label.set_alignment(0, 0.5f);
+
+        var trust_anchor_display = make_ta_fingerprint_widget(idcard.trust_anchor);
 
         var vbox = new VBox(false, 0);
         vbox.set_border_width(6);
         vbox.pack_start(dialog_label, true, true, 12);
         vbox.pack_start(user_label, true, true, 2);
         vbox.pack_start(realm_label, true, true, 2);
-        vbox.pack_start(fingerprint_label, true, true, 2);
-        vbox.pack_start(fingerprint_width_constraint, true, true, 2);
+        vbox.pack_start(trust_anchor_display, true, true, 0);
         vbox.pack_start(confirm_label, true, true, 12);
 
         ((Container) content_area).add(vbox);
@@ -119,21 +103,5 @@ class TrustAnchorDialog : Dialog
             complete = true;
             break;
         }
-    }
-
-    // Yeah, it doesn't mean "colonize" the way you might think... :-)
-    private static string colonize(string input) {
-        return_if_fail(input.length % 2 == 0);
-
-        string result = "";
-        int i = 0;
-        while (i < input.length) {
-            if (i > 0) {
-                result += ":";
-            }
-            result += input[i : i + 2];
-            i += 2;
-        }
-        return result;
     }
 }

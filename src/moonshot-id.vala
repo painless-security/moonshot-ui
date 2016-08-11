@@ -101,6 +101,16 @@ public class TrustAnchor : Object
             return 1;
         return 0;
     }
+
+    public string? get_expiration_date()
+    {
+        if (this.ca_cert == "") {
+            return null;
+        }
+
+        //!!TODO read expiration date
+        return "";
+    }
 }
 
 public struct Rule
