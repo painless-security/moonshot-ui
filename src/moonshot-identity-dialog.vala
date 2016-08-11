@@ -175,11 +175,11 @@ class IdentityDialog : Dialog
         this.response.connect(on_response);
         content_area.set_border_width(6);
 
-        Widget trust_anchor_box = make_trust_anchor_box(card);
-        content_area.pack_start(trust_anchor_box, false, false, 15);
-
         if (!is_new_card)
         {
+            Widget trust_anchor_box = make_trust_anchor_box(card);
+            content_area.pack_start(trust_anchor_box, false, false, 15);
+
             var services_vbox = make_services_vbox();
             content_area.pack_start(services_vbox);
         }
