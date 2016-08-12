@@ -32,8 +32,14 @@
 
 using Gee;
 
+extern char* get_cert_valid_before(char* cert, int certlen, char* datebuf, int buflen);
+
+
 public class TrustAnchor : Object
 {
+    private static const string CERT_HEADER = "-----BEGIN CERTIFICATE-----";
+    private static const string CERT_FOOTER = "-----END CERTIFICATE-----";
+
     public enum TrustAnchorType {
         CA_CERT,
         SERVER_CERT
@@ -108,10 +114,32 @@ public class TrustAnchor : Object
             return null;
         }
 
-        //!!TODO read expiration date
-        return "";
+        string cert = this.ca_cert;
+        cert.chomp();
+        if (cert.substring(0, CERT_HEADER.length) != CERT_HEADER) {
+            cert = CERT_HEADER + "\n" + cert;
+        }
+        if (cert.substring(0, -CERT_FOOTER.length) != CERT_FOOTER) {
+            cert += "\n" + CERT_FOOTER;
+        }
+        cert += "\n";
+
+        IdCard.logger.trace(@"get_expiration_date: Sending " + cert);
+
+        char buf[64];
+        string err = (string) read_cert_expiration(cert, cert.length, buf, 64);
+        if (err != "") {
+            IdCard.logger.error(@"get_expiration_date: got back '$err'");
+            return err;
+        }
+            
+        string date = (string) buf;
+        IdCard.logger.trace(@"get_expiration_date: got back '$date'");
+
+        return date;
     }
 }
+
 
 public struct Rule
 {
@@ -128,7 +156,7 @@ public struct Rule
 
 public class IdCard : Object
 {
-    static MoonshotLogger logger = get_logger("IdCard");
+    internal static MoonshotLogger logger = get_logger("IdCard");
 
     public const string NO_IDENTITY = "No Identity";
 

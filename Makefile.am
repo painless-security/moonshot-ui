@@ -71,10 +71,12 @@ src_moonshot_SOURCES = \
         src/moonshot-trust-anchor-dialog.vala \
         src/moonshot-utils.vala \
         src/moonshot-futils.c \
+        src/moonshot-crypto-utils.c \
         src/moonshot-logger.vala \
         src/moonshot-warning-dialog.vala
 
 src_moonshot_webp_SOURCES = \
+        src/moonshot-crypto-utils.c \
         src/moonshot-webp-parser.vala \
         src/moonshot-provisioning-common.vala \
         src/moonshot-id.vala \
@@ -121,8 +123,8 @@ if OS_LINUX
 
 AM_CPPFLAGS += -I/usr/include/gnome-keyring-1
 AM_VALAFLAGS += --pkg moonshot-gnome-keyring --define=GNOME_KEYRING
-src_moonshot_LDFLAGS += -lgnome-keyring
-src_moonshot_webp_LDFLAGS += -lgnome-keyring
+src_moonshot_LDFLAGS += -lgnome-keyring -lcrypto
+src_moonshot_webp_LDFLAGS += -lgnome-keyring -lcrypto
 
 ## Installing mime type data
 mimedir = $(datadir)/mime/packages

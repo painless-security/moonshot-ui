@@ -238,8 +238,16 @@ namespace WebProvisioning
             {
                 var dis = new DataInputStream(file.read());
                 string line;
-                while ((line = dis.read_line(null)) != null)
+                while ((line = dis.read_line(null)) != null) {
                     text += line;
+
+                    // Preserve newlines -- important for certificate import.
+                    // (X509 certs can't be parsed without the newlines.)
+                    // 
+                    // This may add an extra newline at EOF. Maybe use
+                    // dis.read_upto("\n", ...) followed by dis.read_byte() instead?
+                    text += "\n";
+                }
             }
             catch(GLib.Error e)
             {
