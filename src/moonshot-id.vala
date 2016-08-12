@@ -108,10 +108,13 @@ public class TrustAnchor : Object
         return 0;
     }
 
-    public string? get_expiration_date()
+    public string? get_expiration_date(out string? err_out=null)
     {
         if (this.ca_cert == "") {
-            return null;
+            if (&err_out != null) {
+                err_out = "Trust anchor does not have a ca_certificate";
+                return null;
+            }
         }
 
         string cert = this.ca_cert;
@@ -127,14 +130,17 @@ public class TrustAnchor : Object
         IdCard.logger.trace(@"get_expiration_date: Sending " + cert);
 
         char buf[64];
-        string err = (string) read_cert_expiration(cert, cert.length, buf, 64);
+        string err = (string) get_cert_valid_before(cert, cert.length, buf, 64);
         if (err != "") {
-            IdCard.logger.error(@"get_expiration_date: got back '$err'");
-            return err;
+            IdCard.logger.error(@"get_expiration_date: get_cert_valid_before returned '$err'");
+            if (&err_out != null) {
+                err_out = err;
+            }
+            return null;
         }
             
         string date = (string) buf;
-        IdCard.logger.trace(@"get_expiration_date: got back '$date'");
+        IdCard.logger.trace(@"get_expiration_date: get_cert_valid_before returned '$date'");
 
         return date;
     }
