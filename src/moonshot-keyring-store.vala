@@ -105,9 +105,18 @@ public class KeyringStore : Object, IIdentityCardStore {
             int rules_patterns_index = -1;
             int rules_always_confirm_index = -1;
             string store_password = null;
+            string ca_cert = "";
+            string server_cert = "";
+            string subject = "";
+            string subject_alt = "";
+            bool   user_verified = false;
             for (i = 0; i < entry.attributes.len; i++) {
                 var attribute = ((GnomeKeyring.Attribute *) entry.attributes.data)[i];
-                string value = attribute.string_value;
+                string value = "";
+                if (attribute.type == GnomeKeyring.AttributeType.STRING) {
+                    value = attribute.string_value;
+                }
+
                 if (attribute.name == "Issuer") {
                     id_card.issuer = value;
                 } else if (attribute.name == "Username") {
@@ -121,17 +130,23 @@ public class KeyringStore : Object, IIdentityCardStore {
                 } else if (attribute.name == "Rules-AlwaysConfirm") {
                     rules_always_confirm_index = i;
                 } else if (attribute.name == "CA-Cert") {
-                    id_card.trust_anchor.ca_cert = value.strip();
+                    ca_cert = value.strip();
                 } else if (attribute.name == "Server-Cert") {
-                    id_card.trust_anchor.server_cert = value;
+                    server_cert = value;
                 } else if (attribute.name == "Subject") {
-                    id_card.trust_anchor.subject = value;
+                    subject = value;
                 } else if (attribute.name == "Subject-Alt") {
-                    id_card.trust_anchor.subject_alt = value;
+                    subject_alt = value;
                 } else if (attribute.name == "StorePassword") {
                     store_password = value;
+                } else if (attribute.name == "CACert_User_Verified") {
+                    user_verified = (value == "true");
                 }
             }
+
+            var ta = new TrustAnchor(ca_cert, server_cert, subject, subject_alt, user_verified);
+            id_card.set_trust_anchor_from_store(ta);
+
             if ((rules_always_confirm_index != -1) && (rules_patterns_index != -1)) {
                 string rules_patterns_all = ((GnomeKeyring.Attribute *) entry.attributes.data)[rules_patterns_index].string_value;
                 string rules_always_confirm_all = ((GnomeKeyring.Attribute *) entry.attributes.data)[rules_always_confirm_index].string_value;
@@ -189,6 +204,7 @@ public class KeyringStore : Object, IIdentityCardStore {
             attributes.append_string("Server-Cert", id_card.trust_anchor.server_cert);
             attributes.append_string("Subject", id_card.trust_anchor.subject);
             attributes.append_string("Subject-Alt", id_card.trust_anchor.subject_alt);
+            attributes.append_string("CACert_User_Verified", id_card.trust_anchor.user_verified ? "true" : "false");
             attributes.append_string("StorePassword", id_card.store_password ? "yes" : "no");
 
             GnomeKeyring.Result result = GnomeKeyring.item_create_sync(null,

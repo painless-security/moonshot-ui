@@ -251,6 +251,10 @@ public class IdentityManagerView : Window {
 
         id_card.update_services_from_list(dialog.get_services());
 
+        if (dialog.clear_trust_anchor) {
+            id_card.clear_trust_anchor();
+        }
+
         return id_card;
     }
 
@@ -591,7 +595,7 @@ public class IdentityManagerView : Window {
     private bool check_and_confirm_trust_anchor(IdCard id)
     {
         if (!id.trust_anchor.is_empty() && id.trust_anchor.get_anchor_type() == TrustAnchor.TrustAnchorType.SERVER_CERT) {
-            if (get_string_setting("TrustAnchors", id.nai) != id.trust_anchor.server_cert) {
+            if (!id.trust_anchor.user_verified) {
 
                 bool ret = false;
                 int result = ResponseType.CANCEL;
@@ -601,7 +605,7 @@ public class IdentityManagerView : Window {
 
                 switch (result) {
                 case ResponseType.OK:
-                    set_string_setting("TrustAnchors", id.nai, id.trust_anchor.server_cert);
+                    id.trust_anchor.user_verified = true;
                     ret = true;
                     break;
                 default:

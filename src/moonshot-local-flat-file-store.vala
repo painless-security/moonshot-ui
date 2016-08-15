@@ -111,11 +111,13 @@ public class LocalFlatFileStore : Object, IIdentityCardStore {
                 }
                 
                 // Trust anchor 
-                id_card.trust_anchor.ca_cert = key_file.get_string(identity, "CA-Cert").strip();
-                id_card.trust_anchor.subject = key_file.get_string(identity, "Subject");
-                id_card.trust_anchor.subject_alt = key_file.get_string(identity, "SubjectAlt");
-                id_card.trust_anchor.server_cert = key_file.get_string(identity, "ServerCert");
-
+                string ca_cert = key_file.get_string(identity, "CA-Cert").strip();
+                string server_cert = key_file.get_string(identity, "ServerCert");
+                string subject = key_file.get_string(identity, "Subject");
+                string subject_alt = key_file.get_string(identity, "SubjectAlt");
+                bool  user_verified = key_file.get_boolean(identity, "CACert_User_Verified");
+                var ta = new TrustAnchor(ca_cert, server_cert, subject, subject_alt, user_verified);
+                id_card.set_trust_anchor_from_store(ta);
                 id_card_list.add(id_card);
             }
             catch (Error e) {
@@ -177,6 +179,7 @@ public class LocalFlatFileStore : Object, IIdentityCardStore {
             key_file.set_string(id_card.display_name, "Subject", id_card.trust_anchor.subject ?? "");
             key_file.set_string(id_card.display_name, "SubjectAlt", id_card.trust_anchor.subject_alt ?? "");
             key_file.set_string(id_card.display_name, "ServerCert", id_card.trust_anchor.server_cert ?? "");
+            key_file.set_boolean(id_card.display_name, "CACert_User_Verified", id_card.trust_anchor.user_verified);
         }
 
         var text = key_file.to_data(null);

@@ -69,6 +69,9 @@ class IdentityDialog : Dialog
 
     private Label selected_item = null;
 
+    // Whether to clear the card's TrustAnchor after the user selects OK
+    internal bool clear_trust_anchor = false;
+
     public string display_name {
         get { return displayname_entry.get_text(); }
     }
@@ -199,7 +202,7 @@ class IdentityDialog : Dialog
         this.show_all();
     }
 
-    private static Widget make_trust_anchor_box(IdCard id)
+    private Widget make_trust_anchor_box(IdCard id)
     {
 
         Label ta_label = new Label(_("Trust anchor: ")
@@ -218,7 +221,11 @@ class IdentityDialog : Dialog
         int row = 0;
 
         var ta_clear_button = new Button.with_label(_("Clear Trust Anchor"));
-        ta_clear_button.clicked.connect((w) => {id.trust_anchor = new TrustAnchor();});
+        ta_clear_button.clicked.connect((w) => {
+                clear_trust_anchor = true;
+                ta_table.set_sensitive(false);
+            }
+            );
 
         ta_table.attach(ta_label, 0, 1, row, row + 1, opts, opts, 0, 0);
         ta_table.attach(ta_clear_button, 1, 2, row, row + 1, fill, fill, 0, 0);
@@ -467,6 +474,4 @@ class IdentityDialog : Dialog
 
         return services_vbox;
     }
-
-
 }

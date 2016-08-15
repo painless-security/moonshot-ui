@@ -137,7 +137,7 @@ public class IdentityManagerApp {
     }
 
     public void select_identity(IdentityRequest request) {
-        logger.trace("select_identity");
+        logger.trace("select_identity: request.nai=%s".printf(request.nai ?? "[null]"));
 
         IdCard identity = null;
 
@@ -157,6 +157,7 @@ public class IdentityManagerApp {
                 /* If NAI matches, use this id card */
                 if (has_nai && request.nai == id.nai)
                 {
+                    logger.trace("select_identity: request has nai; returning " + id.display_name);
                     identity = id;
                     break;
                 }
@@ -165,6 +166,7 @@ public class IdentityManagerApp {
                 if (has_srv)
                 {
                     if (id.services.contains(request.service)) {
+                        logger.trace(@"select_identity: request has service '$(request.service); matched on '$(id.display_name)'");
                         request.candidates.append(id);
                     }
                 }
@@ -173,6 +175,7 @@ public class IdentityManagerApp {
             /* If more than one candidate we dissasociate service from all ids */
             if ((identity == null) && has_srv && request.candidates.length() > 1)
             {
+                logger.trace(@"select_identity: multiple candidates; removing service '$(request.service) from all.");
                 foreach (IdCard id in request.candidates)
                 {
                     id.services.remove(request.service);
@@ -182,6 +185,7 @@ public class IdentityManagerApp {
             /* If there are no candidates we use the service matching rules */
             if ((identity == null) && (request.candidates.length() == 0))
             {
+                logger.trace("select_identity: No candidates; using service matching rules.");
                 foreach (IdCard id in model.get_card_list())
                 {
                     foreach (Rule rule in id.rules)
@@ -189,6 +193,7 @@ public class IdentityManagerApp {
                         if (!match_service_pattern(request.service, rule.pattern))
                             continue;
 
+                        logger.trace(@"select_identity: ID $(id.display_name) matched on service matching rules.");
                         request.candidates.append(id);
 
                         if (rule.always_confirm == "true")
@@ -198,6 +203,7 @@ public class IdentityManagerApp {
             }
             
             if ((identity == null) && has_nai) {
+                logger.trace("select_identity: Creating temp identity");
                 // create a temp identity
                 string[] components = request.nai.split("@", 2);
                 identity = new IdCard();

@@ -117,7 +117,7 @@ public class MoonshotServer : Object {
             if (subject_alt_name_constraint == null)
                 subject_alt_name_constraint = "";
 
-            logger.trace("MoonshotServer.get_identity: returning true");
+            logger.trace(@"MoonshotServer.get_identity: returning with nai_out=$nai_out");
 
             return true;
         }
@@ -198,10 +198,8 @@ public class MoonshotServer : Object {
             idcard.store_password = true;
         idcard.issuer = realm;
         idcard.update_services(services);
-        idcard.trust_anchor.ca_cert = ca_cert;
-        idcard.trust_anchor.subject = subject;
-        idcard.trust_anchor.subject_alt = subject_alt;
-        idcard.trust_anchor.server_cert = server_cert;
+        var ta = new TrustAnchor(ca_cert, server_cert, subject, subject_alt, false);
+        idcard.set_trust_anchor_from_store(ta);
 
         logger.trace("install_id_card: Card '%s' has services: '%s'"
                      .printf(idcard.display_name, idcard.get_services_string("; ")));

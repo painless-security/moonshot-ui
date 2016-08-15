@@ -33,12 +33,12 @@
 
 
 namespace WebProvisioning
-{ 
+{
     bool check_stack(SList<string> stack, string[] reference) {
 
         if (stack.length() < reference.length)
             return false;
-    
+
         for (int i = 0; i < reference.length; i++)
         {
             if (stack.nth_data(i) != reference[i])
@@ -51,74 +51,74 @@ namespace WebProvisioning
     bool always_confirm_handler(SList<string> stack)
     {
         string[] always_confirm_path = {"always-confirm", "rule", "selection-rules", "identity", "identities"};
-    
+
         return check_stack(stack, always_confirm_path);
     }
-  
+
     bool
     pattern_handler(SList<string> stack)
     {
         string[] pattern_path = {"pattern", "rule", "selection-rules", "identity", "identities"};
-    
+
         return check_stack(stack, pattern_path);
     }
 
     bool server_cert_handler(SList<string> stack)
     {
         string[] server_cert_path = {"server-cert", "trust-anchor", "identity", "identities"};
-    
+
         return check_stack(stack, server_cert_path);
     }
 
     bool subject_alt_handler(SList<string> stack)
     {
         string[] subject_alt_path = {"subject-alt", "trust-anchor", "identity", "identities"};
-    
+
         return check_stack(stack, subject_alt_path);
     }
 
     bool subject_handler(SList<string> stack)
     {
         string[] subject_path = {"subject", "trust-anchor", "identity", "identities"};
-    
+
         return check_stack(stack, subject_path);
     }
-  
+
     bool ca_cert_handler(SList<string> stack)
     {
         string[] ca_path = {"ca-cert", "trust-anchor", "identity", "identities"};
-    
+
         return check_stack(stack, ca_path);
     }
 
     bool realm_handler(SList<string> stack)
     {
         string[] realm_path = {"realm", "identity", "identities"};
-    
+
         return check_stack(stack, realm_path);
     }
 
     bool password_handler(SList<string> stack)
     {
         string[] password_path = {"password", "identity", "identities"};
-    
+
         return check_stack(stack, password_path);
     }
 
     bool user_handler(SList<string> stack)
     {
         string[] user_path = {"user", "identity", "identities"};
-    
+
         return check_stack(stack, user_path);
     }
 
     bool display_name_handler(SList<string> stack)
     {
         string[] display_name_path = {"display-name", "identity", "identities"};
-    
+
         return check_stack(stack, display_name_path);
     }
-  
+
     public class Parser : Object
     {
         private static MoonshotLogger logger = new MoonshotLogger("WebProvisioning");
@@ -126,7 +126,7 @@ namespace WebProvisioning
         private void start_element_func(MarkupParseContext context,
                                         string element_name,
                                         string[] attribute_names,
-                                        string[] attribute_values) throws MarkupError 
+                                        string[] attribute_values) throws MarkupError
             {
                 if (element_name == "identity")
                 {
@@ -145,10 +145,10 @@ namespace WebProvisioning
                               string             text,
                               size_t             text_len) throws MarkupError {
                 unowned SList<string> stack = context.get_element_stack();
-    
+
                 if (text_len < 1)
                     return;
-    
+
                 logger.trace("text_element_func (%p): text='%s'".printf(this, stack.nth_data(0)));
 
                 if (stack.nth_data(0) == "display-name" && display_name_handler(stack))
@@ -175,7 +175,7 @@ namespace WebProvisioning
                 /* Rules */
                 else if (stack.nth_data(0) == "pattern" && pattern_handler(stack))
                 {
-                    /* use temp array to workaround valac 0.10 bug accessing array property length */ 
+                    /* use temp array to workaround valac 0.10 bug accessing array property length */
                     var temp = card.rules;
                     card.rules[temp.length - 1].pattern = text;
                 }
@@ -187,22 +187,49 @@ namespace WebProvisioning
                         card.rules[temp.length - 1].always_confirm = text;
                     }
                 }
-                /*Trust anchor*/
+                // This is ugly, but... we use the TrustAnchor field in the IdCard as a placeholder,
+                // replacing it with a new one every time we read a new element.
+                // "user_verified" is always false, since we're reading the TrustAnchor from XML.
                 else if (stack.nth_data(0) == "ca-cert" && ca_cert_handler(stack))
                 {
-                    card.trust_anchor.ca_cert = text;
-                }
-                else if (stack.nth_data(0) == "subject" && subject_handler(stack))
-                {
-                    card.trust_anchor.subject = text;
-                }
-                else if (stack.nth_data(0) == "subject-alt" && subject_alt_handler(stack))
-                {
-                    card.trust_anchor.subject_alt = text;
+                    string ca_cert = text;
+                    var ta = new TrustAnchor(ca_cert,
+                                             card.trust_anchor.server_cert,
+                                             card.trust_anchor.subject,
+                                             card.trust_anchor.subject_alt,
+                                             false);
+                    card.set_trust_anchor_from_store(ta);
                 }
                 else if (stack.nth_data(0) == "server-cert" && server_cert_handler(stack))
                 {
-                    card.trust_anchor.server_cert = text;
+                    string server_cert = text;
+                    var ta = new TrustAnchor(card.trust_anchor.ca_cert,
+                                             server_cert,
+                                             card.trust_anchor.subject,
+                                             card.trust_anchor.subject_alt,
+                                             false);
+                    card.set_trust_anchor_from_store(ta);
+
+                }
+                else if (stack.nth_data(0) == "subject" && subject_handler(stack))
+                {
+                    string subject = text;
+                    var ta = new TrustAnchor(card.trust_anchor.ca_cert,
+                                             card.trust_anchor.server_cert,
+                                             subject,
+                                             card.trust_anchor.subject_alt,
+                                             false);
+                    card.set_trust_anchor_from_store(ta);
+                }
+                else if (stack.nth_data(0) == "subject-alt" && subject_alt_handler(stack))
+                {
+                    string subject_alt = text;
+                    var ta = new TrustAnchor(card.trust_anchor.ca_cert,
+                                             card.trust_anchor.server_cert,
+                                             card.trust_anchor.subject,
+                                             subject_alt,
+                                             false);
+                    card.set_trust_anchor_from_store(ta);
                 }
             }
 
@@ -233,7 +260,7 @@ namespace WebProvisioning
             this.path = path;
 
             var file = File.new_for_path(path);
-    
+
             try
             {
                 var dis = new DataInputStream(file.read());
@@ -243,7 +270,7 @@ namespace WebProvisioning
 
                     // Preserve newlines -- important for certificate import.
                     // (X509 certs can't be parsed without the newlines.)
-                    // 
+                    //
                     // This may add an extra newline at EOF. Maybe use
                     // dis.read_upto("\n", ...) followed by dis.read_byte() instead?
                     text += "\n";
@@ -253,7 +280,7 @@ namespace WebProvisioning
             {
                 error("Could not retreive file size");
             }
-      
+
             logger.trace(@"Parser(): read text to parse; length=$(text.length)");
         }
 
@@ -265,7 +292,7 @@ namespace WebProvisioning
             catch(GLib.Error e)
             {
                 error("Could not parse %s, invalid content", path);
-            } 
+            }
         }
     }
 }

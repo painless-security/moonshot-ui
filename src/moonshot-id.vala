@@ -35,6 +35,8 @@ using Gee;
 extern char* get_cert_valid_before(char* cert, int certlen, char* datebuf, int buflen);
 
 
+// A TrustAnchor object can be imported or installed via the API, but cannot
+// be modified by the user, other than being cleared. Hence the fields are read-only.
 public class TrustAnchor : Object
 {
     private static const string CERT_HEADER = "-----BEGIN CERTIFICATE-----";
@@ -50,12 +52,28 @@ public class TrustAnchor : Object
     private string _subject_alt = "";
     private string _server_cert = "";
 
+    public bool user_verified = false;
+
+    public TrustAnchor(string ca_cert, string server_cert, string subject, string subject_alt, bool user_verified) {
+        _ca_cert = ca_cert;
+        _server_cert = server_cert;
+        _subject = subject;
+        _subject_alt = subject_alt;
+        this.user_verified = user_verified;
+    }
+
+    public TrustAnchor.empty() {
+        _ca_cert = "";
+        _server_cert = "";
+        _subject = "";
+        _subject_alt = "";
+        this.user_verified = false;
+    }
+
+
     public string ca_cert {
         get {
             return _ca_cert;
-        }
-        set {
-            _ca_cert = (value ?? "");
         }
     }
 
@@ -63,17 +81,11 @@ public class TrustAnchor : Object
         get {
             return _subject;
         }
-        set {
-            _subject = (value ?? "");
-        }
     }
 
     public string subject_alt  {
         get {
             return _subject_alt;
-        }
-        set {
-            _subject_alt = (value ?? "");
         }
     }
 
@@ -81,9 +93,6 @@ public class TrustAnchor : Object
     public string server_cert {
         get {
             return _server_cert;
-        }
-        set {
-            _server_cert = (value ?? "");
         }
     }
 
@@ -104,6 +113,8 @@ public class TrustAnchor : Object
         if (this.subject_alt != other.subject_alt)
             return 1;
         if (this.server_cert != other.server_cert)
+            return 1;
+        if (this.user_verified != other.user_verified)
             return 1;
         return 0;
     }
@@ -254,7 +265,21 @@ public class IdCard : Object
 
     public bool temporary {get; set; default = false; }
 
-    public TrustAnchor trust_anchor  { get; set; default = new TrustAnchor (); }
+    private TrustAnchor _trust_anchor = new TrustAnchor.empty();
+    public TrustAnchor trust_anchor  { 
+        get {
+            return _trust_anchor;
+        }
+    }
+
+    // For use by storage implementations.
+    internal void set_trust_anchor_from_store(TrustAnchor ta) {
+        _trust_anchor = ta;
+    }
+
+    internal void clear_trust_anchor() {
+        _trust_anchor = new TrustAnchor.empty();
+    }
   
     public unowned string nai { get {  _nai = username + "@" + issuer; return _nai;}}
 
@@ -300,6 +325,9 @@ public class IdCard : Object
             diff |= 1 << DiffFlags.TRUST_ANCHOR;
 
         // stdout.printf("Diff Flags: %x\n", diff);
+        if (this.display_name == other.display_name && diff != 0) {
+            logger.trace("Compare: Two IDs with display_name '%s', but diff_flags=%0x".printf(this.display_name, diff));
+        }
         return diff;
     }
 
