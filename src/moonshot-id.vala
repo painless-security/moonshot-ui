@@ -32,7 +32,7 @@
 
 using Gee;
 
-extern char* get_cert_valid_before(char* cert, int certlen, char* datebuf, int buflen);
+extern char* get_cert_valid_before(uchar* inbuf, int inlen, char* outbuf, int outlen);
 
 
 // A TrustAnchor object can be imported or installed via the API, but cannot
@@ -130,18 +130,12 @@ public class TrustAnchor : Object
 
         string cert = this.ca_cert;
         cert.chomp();
-        if (cert.substring(0, CERT_HEADER.length) != CERT_HEADER) {
-            cert = CERT_HEADER + "\n" + cert;
-        }
-        if (cert.substring(0, -CERT_FOOTER.length) != CERT_FOOTER) {
-            cert += "\n" + CERT_FOOTER;
-        }
-        cert += "\n";
 
-        IdCard.logger.trace(@"get_expiration_date: Sending " + cert);
+        uchar[] binary = Base64.decode(cert);
+        IdCard.logger.trace("get_expiration_date: encoded length=%d; decoded length=%d".printf(cert.length, binary.length));
 
         char buf[64];
-        string err = (string) get_cert_valid_before(cert, cert.length, buf, 64);
+        string err = (string) get_cert_valid_before(binary, binary.length, buf, 64);
         if (err != "") {
             IdCard.logger.error(@"get_expiration_date: get_cert_valid_before returned '$err'");
             if (&err_out != null) {
