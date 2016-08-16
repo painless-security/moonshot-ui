@@ -35,6 +35,8 @@ class IdCardWidget : Box
 {
     static MoonshotLogger logger = get_logger("IdCardWidget");
 
+    private static const ShadowType ARROW_SHADOW = ShadowType.NONE;
+
     private IdentityManagerView manager_view;
 
     public IdCard id_card { get; set; default = null; }
@@ -42,6 +44,7 @@ class IdCardWidget : Box
     private HBox table;
     private EventBox event_box;
     private bool   is_selected = false;
+    private Arrow arrow;
     
     private Label label;
 
@@ -72,6 +75,7 @@ class IdCardWidget : Box
         update_id_card_label();
 
         set_idcard_color();
+        arrow.set(ArrowType.DOWN, ARROW_SHADOW);
         this.expanded();
     }
 
@@ -81,6 +85,7 @@ class IdCardWidget : Box
         update_id_card_label();
 
         set_idcard_color();
+        arrow.set(ArrowType.RIGHT, ARROW_SHADOW);
     }
 
     private bool button_press_cb()
@@ -116,8 +121,8 @@ class IdCardWidget : Box
 
             }
         }
-        var state = this.get_state();
-        this.event_box.modify_bg(state, color);
+        this.event_box.modify_bg(StateType.NORMAL, color);
+        this.arrow.modify_bg(StateType.NORMAL, color);
     }
     
     private void
@@ -160,6 +165,8 @@ class IdCardWidget : Box
         table = new Gtk.HBox(false, 6);
         table.pack_start(image, false, false, 0);
         table.pack_start(label, true, true, 0);
+        this.arrow = new Arrow(ArrowType.RIGHT, ARROW_SHADOW);
+        table.pack_start(arrow, false, false);
 
         this.main_vbox = new VBox(false, 12);
         main_vbox.pack_start(table, true, true, 0);
