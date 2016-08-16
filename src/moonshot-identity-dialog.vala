@@ -42,6 +42,9 @@ static const string CANCEL = STOCK_CANCEL;
 #endif
 
 
+// For use when exporting certificates.
+static string export_directory = null;
+
 class IdentityDialog : Dialog
 {
     private static Gdk.Color white = make_color(65535, 65535, 65535);
@@ -484,32 +487,42 @@ class IdentityDialog : Dialog
                                            _("Save"), ResponseType.ACCEPT,
                                            null);
         dialog.set_do_overwrite_confirmation(true);
-//        dialog.set_current_folder(default_folder_for_saving);
-        //dialog.set_current_name("Untitled document");
+        if (export_directory != null) {
+            dialog.set_current_folder(export_directory);
+        }
+        // Remove slashes from the default filename.
+        string default_filename = 
+            (id.display_name + ".pem").replace(Path.DIR_SEPARATOR_S, "_");
+        dialog.set_current_name(default_filename);
         if (dialog.run() == ResponseType.ACCEPT)
         {
+            // Export the certificate in PEM format.
+
             const string CERT_HEADER = "-----BEGIN CERTIFICATE-----\n";
             const string CERT_FOOTER = "\n-----END CERTIFICATE-----\n";
 
-            // Normalize the certificate to PEM format:
-            // 1) Strip any embedded newlines in the certificate...
+            // Strip any embedded newlines in the certificate...
             string cert = id.trust_anchor.ca_cert.replace("\n", "");
 
-            // 2), re-embed newlines every 64 chars.
+            // Re-embed newlines every 64 chars.
             string newcert = CERT_HEADER;
             while (cert.length > 63) {
-                newcert += cert[0:63] + "\n";
-                cert = cert[63:cert.length];
+                newcert += cert[0:64];
+                newcert += "\n";
+                cert = cert[64:cert.length];
             }
             if (cert.length > 0) {
                 newcert += cert;
-                newcert += CERT_FOOTER;
             }
+            newcert += CERT_FOOTER;
 
             string filename = dialog.get_filename();
             var file  = File.new_for_path(filename);
             var stream = file.replace(null, false, FileCreateFlags.PRIVATE);
             stream.write(newcert.data);
+
+            // Save the parent directory to use as default for next save
+            export_directory = file.get_parent().get_path();
         }
         dialog.destroy();
     }
