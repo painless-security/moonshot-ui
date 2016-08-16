@@ -246,7 +246,7 @@ class IdentityDialog : Dialog
             ca_cert_label.set_alignment(0, 0.5f);
             var export_button = new Button.with_label(_("Export Certificate"));
             //!!TODO!
-            export_button.clicked.connect((w) => {/* !!TODO! */});
+            export_button.clicked.connect((w) => {export_certificate(id);});
 
             ta_table.attach(ca_cert_label, 0, 1, row, row + 1, opts, opts, 20, 0);
             ta_table.attach(export_button, 1, 2, row, row + 1, fill, fill, 0, 0);
@@ -473,5 +473,44 @@ class IdentityDialog : Dialog
             });
 
         return services_vbox;
+    }
+
+    private void export_certificate(IdCard id) 
+    {
+        var dialog = new FileChooserDialog("Save File",
+                                           this,
+                                           FileChooserAction.SAVE,
+                                           _("Cancel"),ResponseType.CANCEL,
+                                           _("Save"), ResponseType.ACCEPT,
+                                           null);
+        dialog.set_do_overwrite_confirmation(true);
+//        dialog.set_current_folder(default_folder_for_saving);
+        //dialog.set_current_name("Untitled document");
+        if (dialog.run() == ResponseType.ACCEPT)
+        {
+            const string CERT_HEADER = "-----BEGIN CERTIFICATE-----\n";
+            const string CERT_FOOTER = "\n-----END CERTIFICATE-----\n";
+
+            // Normalize the certificate to PEM format:
+            // 1) Strip any embedded newlines in the certificate...
+            string cert = id.trust_anchor.ca_cert.replace("\n", "");
+
+            // 2), re-embed newlines every 64 chars.
+            string newcert = CERT_HEADER;
+            while (cert.length > 63) {
+                newcert += cert[0:63] + "\n";
+                cert = cert[63:cert.length];
+            }
+            if (cert.length > 0) {
+                newcert += cert;
+                newcert += CERT_FOOTER;
+            }
+
+            string filename = dialog.get_filename();
+            var file  = File.new_for_path(filename);
+            var stream = file.replace(null, false, FileCreateFlags.PRIVATE);
+            stream.write(newcert.data);
+        }
+        dialog.destroy();
     }
 }
