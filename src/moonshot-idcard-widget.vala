@@ -35,6 +35,8 @@ class IdCardWidget : Box
 {
     static MoonshotLogger logger = get_logger("IdCardWidget");
 
+    private IdentityManagerView manager_view;
+
     public IdCard id_card { get; set; default = null; }
     private VBox main_vbox;
     private HBox table;
@@ -125,7 +127,9 @@ class IdCardWidget : Box
         string services_text = _("Services:  ");
         string service_spacer = _("\n                ");
 
-        var label_text = Markup.printf_escaped(_("<big>%s</big>"), this.id_card.display_name);
+        var display_name = (manager_view.selection_in_progress() && this.id_card.is_no_identity()
+                            ? "Do not use a Moonshot identity for this service" : this.id_card.display_name);
+        var label_text = Markup.printf_escaped(_("<big>%s</big>"), display_name);
 
         if (is_selected)
         {
@@ -141,9 +145,10 @@ class IdCardWidget : Box
         label.set_markup(label_text);
     }
 
-    public IdCardWidget(IdCard id_card)
+    public IdCardWidget(IdCard id_card, IdentityManagerView manager_view)
     {
         this.id_card = id_card;
+        this.manager_view = manager_view;
 
         var image = new Image.from_pixbuf(get_pixbuf(id_card));
 

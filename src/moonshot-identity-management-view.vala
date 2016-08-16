@@ -63,7 +63,7 @@ public class IdentityManagerView : Window {
     internal IdentityManagerModel identities_manager;
     private unowned SList<IdCard>    candidates;
 
-    public GLib.Queue<IdentityRequest> request_queue;
+    private GLib.Queue<IdentityRequest> request_queue;
 
     internal CheckButton remember_identity_binding = null;
 
@@ -296,7 +296,7 @@ public class IdentityManagerView : Window {
 
     private IdCardWidget add_id_card_widget(IdCard id_card)
     {
-        var id_card_widget = new IdCardWidget(id_card);
+        var id_card_widget = new IdCardWidget(id_card, this);
         this.custom_vbox.add_id_card_widget(id_card_widget);
         id_card_widget.expanded.connect(this.widget_selected_cb);
         id_card_widget.collapsed.connect(this.widget_unselected_cb);
@@ -309,7 +309,7 @@ public class IdentityManagerView : Window {
         this.edit_button.set_sensitive(true);
         this.custom_vbox.receive_expanded_event(id_card_widget);
 
-        if (this.request_queue.length > 0)
+        if (this.selection_in_progress())
              this.send_button.set_sensitive(true);
     }
 
@@ -490,7 +490,7 @@ public class IdentityManagerView : Window {
 
     public void queue_identity_request(IdentityRequest request)
     {
-        if (this.request_queue.is_empty())
+        if (!this.selection_in_progress())
         { /* setup widgets */
             candidates = request.candidates;
             filter.refilter();
@@ -551,7 +551,7 @@ public class IdentityManagerView : Window {
 
     private void send_identity_cb(IdCard id)
     {
-        return_if_fail(request_queue.length > 0);
+        return_if_fail(this.selection_in_progress());
 
         if (!check_and_confirm_trust_anchor(id)) {
             // Allow user to pick again
@@ -564,7 +564,7 @@ public class IdentityManagerView : Window {
 
         candidates = null;
       
-        if (this.request_queue.is_empty())
+        if (!this.selection_in_progress())
         {
             candidates = null;
             clear_selection_prompts();
@@ -863,9 +863,13 @@ SUCH DAMAGE.
         add(main_vbox);
         main_vbox.show_all();
 
-        if (this.request_queue.length == 0)
+        if (!this.selection_in_progress())
             remember_identity_binding.hide();
     } 
+
+    internal bool selection_in_progress() {
+        return !this.request_queue.is_empty();
+    }
 
     private void set_atk_name_description(Widget widget, string name, string description)
     {
