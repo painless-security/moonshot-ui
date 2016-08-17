@@ -881,7 +881,31 @@ SUCH DAMAGE.
 
     private void connect_signals()
     {
-        this.destroy.connect(Gtk.main_quit);
+        this.destroy.connect(() => {
+                logger.trace("Destroy event; calling Gtk.main_quit()");
+                Gtk.main_quit();
+            });
         this.identities_manager.card_list_changed.connect(this.on_card_list_changed);
+        this.delete_event.connect(() => {return confirm_quit();});
+    }
+
+    private bool confirm_quit() {
+        logger.trace("delete_event intercepted; selection_in_progress()=" + selection_in_progress().to_string());
+
+        if (selection_in_progress()) {
+            var result = WarningDialog.confirm(this,
+                                               Markup.printf_escaped(
+                                                   _("<span font-weight='heavy'>Do you wish to use the %s service?</span>"),
+                                                   this.request_queue.peek_head().service)
+                                               + _("\n\nSelect Yes to select an ID for this service, or No to cancel"),
+                                               "close_moonshot_window");
+            if (result) {
+                // Prevent other handlers from handling this event; this keeps the window open.
+                return true; 
+            }
+        }
+
+        // Allow the window deletion to proceed.
+        return false;
     }
 }
