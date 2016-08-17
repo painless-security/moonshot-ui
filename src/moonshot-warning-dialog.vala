@@ -69,9 +69,20 @@ class WarningDialog
         if (dialog_name != null && dialog_name != "")
         {
             remember_checkbutton = new CheckButton.with_label(_("Do not show this message again"));
-            remember_checkbutton.set_focus_on_click(false);
-            remember_checkbutton.has_focus = false;
-            content_area.has_focus = true;
+            // remember_checkbutton.set_focus_on_click(false);
+            // remember_checkbutton.set_can_focus(false);
+            // remember_checkbutton.has_focus = false;
+            remember_checkbutton.set_receives_default(false);
+            Container action_area = (Container) dialog.get_action_area();
+
+            // This is awful, because it assumes the Yes button is first in the
+            // children (and for that matter, it assumes there are no intermediate
+            // containers.) But searching for "Yes" in the widget text would
+            // cause localization problems.
+            // TODO: Rewrite to use Dialog instead of MessageDialog?
+            var yes_button = action_area.get_children().first().data;
+            yes_button.grab_default();
+            yes_button.grab_focus();
 
 // Not sure if 0.26 is the minimum for MessageDialog.get_message_area. 0.16 sure isn't :-(
 #if VALA_0_26
