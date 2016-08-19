@@ -121,7 +121,7 @@ public class LocalFlatFileStore : Object, IIdentityCardStore {
                 string server_cert = key_file.get_string(identity, "ServerCert");
                 string subject = key_file.get_string(identity, "Subject");
                 string subject_alt = key_file.get_string(identity, "SubjectAlt");
-                bool  user_verified = get_bool_setting(identity, "TA_DateTime_Added", false, key_file);
+                bool  user_verified = get_bool_setting(identity, "TA_User_Verified", false, key_file);
                 var ta = new TrustAnchor(ca_cert, server_cert, subject, subject_alt, user_verified);
                 string ta_datetime_added = get_string_setting(identity, "TA_DateTime_Added", "", key_file);
                 if (ta_datetime_added != "") {
@@ -191,8 +191,10 @@ public class LocalFlatFileStore : Object, IIdentityCardStore {
             key_file.set_string(id_card.display_name, "Subject", id_card.trust_anchor.subject);
             key_file.set_string(id_card.display_name, "SubjectAlt", id_card.trust_anchor.subject_alt);
             key_file.set_string(id_card.display_name, "ServerCert", id_card.trust_anchor.server_cert);
-            key_file.set_string(id_card.display_name, "TA_DateTime_Added", id_card.trust_anchor.datetime_added);
-            key_file.set_boolean(id_card.display_name, "CACert_User_Verified", id_card.trust_anchor.user_verified);
+            if (id_card.trust_anchor.datetime_added != "") {
+                key_file.set_string(id_card.display_name, "TA_DateTime_Added", id_card.trust_anchor.datetime_added);
+            }
+            key_file.set_boolean(id_card.display_name, "TA_User_Verified", id_card.trust_anchor.user_verified);
             logger.trace(@"store_id_cards: Stored '$(id_card.display_name)'");
         }
 

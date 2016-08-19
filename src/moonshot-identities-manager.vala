@@ -142,7 +142,7 @@ public class IdentityManagerModel : Object {
         return true;
     }
 
-    private bool remove_duplicates(IdCard card)
+    private bool remove_duplicates(IdCard new_card)
     {
         bool duplicate_found = false;
         bool found = false;
@@ -150,11 +150,17 @@ public class IdentityManagerModel : Object {
             var cards = this.store.get_card_list();
             found = false;
             foreach (IdCard id_card in cards) {
-                if ((card != id_card) && (id_card.nai == card.nai)) {
-                    stdout.printf("removing duplicate id for '%s'\n", card.nai);
-                    logger.trace("removing duplicate id for '%s'\n".printf(card.nai));
+                if ((new_card != id_card) && (id_card.nai == new_card.nai)) {
+                    stdout.printf("removing duplicate id for '%s'\n", new_card.nai);
+                    logger.trace("removing duplicate id for '%s'\n".printf(new_card.nai));
                     remove_card_internal(id_card);
                     found = duplicate_found = true;
+
+                    if (new_card.trust_anchor.Compare(id_card.trust_anchor) == 0) {
+                        logger.trace("Old and new cards have same trust anchor. Re-using the datetime_added and user_verified fields from the old card.");
+                        new_card.trust_anchor.set_datetime_added(id_card.trust_anchor.datetime_added);
+                        new_card.trust_anchor.user_verified = id_card.trust_anchor.user_verified;
+                    }
                     break;
                 }
             }
@@ -203,7 +209,7 @@ public class IdentityManagerModel : Object {
         if (!card.store_password)
             password_table.CachePassword(card, store);
 
-        logger.trace("add_card: Storing card '%s' with services: '%s'"
+        logger.trace("add_card: Adding card '%s' with services: '%s'"
                      .printf(card.display_name, card.get_services_string("; ")));
 
         store.add_card(card);

@@ -125,23 +125,24 @@ public class TrustAnchor : Object
     public int Compare(TrustAnchor other)
     {
         if (this.ca_cert != other.ca_cert) {
+            // IdCard.logger.trace("TrustAnchor.Compare: this.ca_cert='%s'; other.ca_cert='%s'".printf(this.ca_cert, other.ca_cert));
             return 1;
         }
         if (this.subject != other.subject) {
+            // IdCard.logger.trace("TrustAnchor.Compare: this.subject='%s'; other.subject='%s'".printf(this.subject, other.subject));
             return 1;
         }
         if (this.subject_alt != other.subject_alt) {
+            // IdCard.logger.trace("TrustAnchor.Compare: this.subject_alt='%s'; other.subject_alt='%s'".printf(this.subject_alt, other.subject_alt));
             return 1;
         }
         if (this.server_cert != other.server_cert) {
+            // IdCard.logger.trace("TrustAnchor.Compare: this.server_cert=%s'; other.server_cert='%s'".printf(this.server_cert, other.server_cert));
             return 1;
         }
-        if (this.user_verified != other.user_verified) {
-            return 1;
-        }
-        // if (!is_empty() && this.datetime_added != other.datetime_added) {
-        //     return 1;
-        // }
+
+        // Do not compare the user_verified and datetime_added fields; they are not essential.
+
         return 0;
     }
 

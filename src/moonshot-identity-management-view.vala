@@ -231,7 +231,7 @@ public class IdentityManagerView : Window {
         }
 
         foreach (IdCard id_card in card_list) {
-            logger.trace(@"load_id_cards: Adding card with display name '$(id_card.display_name)'");
+            logger.trace(@"load_id_cards: Loading card with display name '$(id_card.display_name)'");
             add_id_card_data(id_card);
             IdCardWidget id_card_widget = add_id_card_widget(id_card);
             if (id_card_widget.id_card.nai == current_idcard_nai) {

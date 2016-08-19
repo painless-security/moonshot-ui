@@ -142,7 +142,7 @@ public class KeyringStore : Object, IIdentityCardStore {
                     subject_alt = value;
                 } else if (attribute.name == "StorePassword") {
                     store_password = value;
-                } else if (attribute.name == "CACert_User_Verified") {
+                } else if (attribute.name == "TA_User_Verified") {
                     user_verified = (value == "true");
                 } else if (attribute.name == "TA_DateTime_Added") {
                     ta_datetime_added = value;
@@ -212,7 +212,7 @@ public class KeyringStore : Object, IIdentityCardStore {
             attributes.append_string("Server-Cert", id_card.trust_anchor.server_cert);
             attributes.append_string("Subject", id_card.trust_anchor.subject);
             attributes.append_string("Subject-Alt", id_card.trust_anchor.subject_alt);
-            attributes.append_string("CACert_User_Verified", id_card.trust_anchor.user_verified ? "true" : "false");
+            attributes.append_string("TA_User_Verified", id_card.trust_anchor.user_verified ? "true" : "false");
             attributes.append_string("TA_DateTime_Added", id_card.trust_anchor.datetime_added);
             attributes.append_string("StorePassword", id_card.store_password ? "yes" : "no");
 
