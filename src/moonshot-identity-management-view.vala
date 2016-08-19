@@ -305,7 +305,8 @@ public class IdentityManagerView : Window {
 
     private void widget_selected_cb(IdCardWidget id_card_widget)
     {
-        this.remove_button.set_sensitive(true);
+        bool allow_removes = !id_card_widget.id_card.is_no_identity();
+        this.remove_button.set_sensitive(allow_removes);
         this.edit_button.set_sensitive(true);
         this.custom_vbox.receive_expanded_event(id_card_widget);
 
@@ -490,7 +491,10 @@ public class IdentityManagerView : Window {
 
     public void queue_identity_request(IdentityRequest request)
     {
-        if (!this.selection_in_progress())
+        bool queue_was_empty = !this.selection_in_progress();
+        this.request_queue.push_tail(request);
+
+        if (queue_was_empty)
         { /* setup widgets */
             candidates = request.candidates;
             filter.refilter();
@@ -499,7 +503,6 @@ public class IdentityManagerView : Window {
             remember_identity_binding.show();
             make_visible();
         }
-        this.request_queue.push_tail(request);
     }
 
 

@@ -129,7 +129,6 @@ class IdCardWidget : Box
     update_id_card_label()
     {
         // !!TODO: Use a table to format the labels and values
-        string services_text = _("Services:  ");
         string service_spacer = _("\n                ");
 
         var display_name = (manager_view.selection_in_progress() && this.id_card.is_no_identity()
@@ -138,12 +137,15 @@ class IdCardWidget : Box
 
         if (is_selected)
         {
-            label_text += "\nUsername:  " + id_card.username;
-            label_text += "\nRealm:  " + id_card.issuer;
-            if (!id_card.trust_anchor.is_empty()) {
-                label_text += _("\nTrust anchor: Enterprise provisioned");
+            if (!this.id_card.is_no_identity()) {
+                label_text += "\nUsername:  " + id_card.username;
+                label_text += "\nRealm:  " + id_card.issuer;
+                if (!id_card.trust_anchor.is_empty()) {
+                    label_text += _("\nTrust anchor: Enterprise provisioned");
+                }
             }
-            services_text += this.id_card.get_services_string(service_spacer);
+
+            string services_text = _("Services:  ") + this.id_card.get_services_string(service_spacer);
             label_text += _("\n") + services_text;
         }
 
@@ -155,14 +157,18 @@ class IdCardWidget : Box
         this.id_card = id_card;
         this.manager_view = manager_view;
 
-        var image = new Image.from_pixbuf(get_pixbuf(id_card));
-
         label = new Label(null);
         label.set_alignment((float) 0, (float) 0.5);
         label.set_ellipsize(Pango.EllipsizeMode.END);
         update_id_card_label();
 
         table = new Gtk.HBox(false, 6);
+        var image = new Image.from_pixbuf(get_pixbuf(id_card));
+        if (this.id_card.is_no_identity()) {
+            image.clear();
+            // Use padding to make the image size =  48x48 (size = 2x padding)
+            image.set_padding(24, 24);
+        }
         table.pack_start(image, false, false, 0);
         table.pack_start(label, true, true, 0);
         this.arrow = new Arrow(ArrowType.RIGHT, ARROW_SHADOW);
