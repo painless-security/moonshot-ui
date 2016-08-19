@@ -1,4 +1,13 @@
 <identities>
+    <identity>
+    <display-name>A Simple Card</display-name>
+    <user>user5</user>
+    <password></password>
+    <realm>painless-security.com</realm>
+    <services>
+    </services>
+  </identity>
+
   <identity>
     <display-name>Unique Name</display-name>
     <user>user1</user>
@@ -109,4 +118,18 @@ WkqDtw0clWg6vkf5Tb9v/JQ2PW0=
       <server-cert>3838E17EC9A2A06D7B6030E3C5727E3466EAB4BB4159DCE7CF6297ADAFC8A56F</server-cert>
     </trust-anchor>
   </identity>
+    <identity>
+    <display-name>A Not Really Unique Name</display-name>
+    <user>user4</user>
+    <password></password>
+    <realm>painless-security.com</realm>
+    <services>
+      <service>ssh/painless-security.com</service>
+      <service>email/painless-security.com</service>
+    </services>
+    <trust-anchor>
+      <server-cert>3838E17EC9A2A06D7B6030E3C5727E3466EAB4BB4159DCE7CF6297ADAFC8A56F</server-cert>
+    </trust-anchor>
+  </identity>
+
 </identities> 
