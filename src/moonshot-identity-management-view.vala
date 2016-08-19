@@ -334,7 +334,7 @@ public class IdentityManagerView : Window {
         Gtk.MessageDialog dialog;
         IdCard? prev_id = identities_manager.find_id_card(id_card.nai, force_flat_file_store);
         logger.trace("add_identity(flat=%s, card='%s'): find_id_card returned %s"
-                     .printf(force_flat_file_store.to_string(), id_card.display_name, (prev_id != null ? "non-null" : "null")));
+                     .printf(force_flat_file_store.to_string(), id_card.display_name, (prev_id != null ? prev_id.display_name : "null")));
         if (prev_id!=null) {
             int flags = prev_id.Compare(id_card);
             logger.trace("add_identity: compare returned " + flags.to_string());

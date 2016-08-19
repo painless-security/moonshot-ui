@@ -244,6 +244,8 @@ public class IdentityManagerModel : Object {
         return false;
     }
 
+    // The name is misleading: This not only sets the store type,
+    // it also creates a new store instance, which loads the card data.
     public void set_store_type(IIdentityCardStore.StoreType type) {
         if ((store != null) && (store.get_store_type() == type))
             return;
@@ -257,6 +259,21 @@ public class IdentityManagerModel : Object {
         default:
             store = new LocalFlatFileStore();
             break;
+        }
+
+        // Loop through the loaded IDs. If any trust anchors are old enough that we didn't record
+        // the datetime_added, add it now.
+        string before_now = _("Before ") + TrustAnchor.format_datetime_now();
+        bool save_needed = false;
+        foreach (IdCard id in this.store.get_card_list()) {
+            if (!id.trust_anchor.is_empty() && id.trust_anchor.datetime_added == "") {
+                logger.trace("set_store_type : Set ta_datetime_added for old trust anchor on '%s' to '%s'".printf(id.display_name, before_now));
+                id.trust_anchor.set_datetime_added(before_now);
+                save_needed = true;
+            }
+        }
+        if (save_needed) {
+            this.store.store_id_cards();
         }
     }
 

@@ -32,6 +32,8 @@
 using Gee; 
 
 public class LocalFlatFileStore : Object, IIdentityCardStore {
+    static MoonshotLogger logger = get_logger("LocalFlatFileStore");
+
     private LinkedList<IdCard> id_card_list;
     private const string FILE_NAME = "identities.txt";
 
@@ -44,9 +46,12 @@ public class LocalFlatFileStore : Object, IIdentityCardStore {
         id_card_list.remove(card);
         id_card_list.add(card);
         store_id_cards();
-        foreach(IdCard idcard in id_card_list)
-        if (idcard.display_name == card.display_name)
-            return idcard;
+        foreach(IdCard idcard in id_card_list) {
+            if (idcard.display_name == card.display_name) {
+                return idcard;
+            }
+        }
+        logger.error(@"update_card: card '$(card.display_name)' was not found after re-loading!");
         return null;
     }
 
@@ -71,6 +76,7 @@ public class LocalFlatFileStore : Object, IIdentityCardStore {
         var key_file = new KeyFile();
         var path = get_data_dir();
         var filename = Path.build_filename(path, FILE_NAME);
+        logger.trace("load_id_cards: attempting to load from " + filename);
         
         try {
             key_file.load_from_file(filename, KeyFileFlags.NONE);
@@ -115,8 +121,12 @@ public class LocalFlatFileStore : Object, IIdentityCardStore {
                 string server_cert = key_file.get_string(identity, "ServerCert");
                 string subject = key_file.get_string(identity, "Subject");
                 string subject_alt = key_file.get_string(identity, "SubjectAlt");
-                bool  user_verified = key_file.get_boolean(identity, "CACert_User_Verified");
+                bool  user_verified = get_bool_setting(identity, "TA_DateTime_Added", false, key_file);
                 var ta = new TrustAnchor(ca_cert, server_cert, subject, subject_alt, user_verified);
+                string ta_datetime_added = get_string_setting(identity, "TA_DateTime_Added", "", key_file);
+                if (ta_datetime_added != "") {
+                    ta.set_datetime_added(ta_datetime_added);
+                }
                 id_card.set_trust_anchor_from_store(ta);
                 id_card_list.add(id_card);
             }
@@ -137,9 +147,11 @@ public class LocalFlatFileStore : Object, IIdentityCardStore {
         return path;
     }
     
-    public void store_id_cards() {
+    internal void store_id_cards() {
         var key_file = new KeyFile();
         foreach (IdCard id_card in this.id_card_list) {
+            logger.trace(@"store_id_cards: Storing '$(id_card.display_name)'");
+
             /* workaround for Centos vala array property bug: use temp arrays */
             var rules = id_card.rules;
             string[] empty = {};
@@ -175,11 +187,13 @@ public class LocalFlatFileStore : Object, IIdentityCardStore {
             key_file.set_string(id_card.display_name, "StorePassword", id_card.store_password ? "yes" : "no");
             
             // Trust anchor 
-            key_file.set_string(id_card.display_name, "CA-Cert", id_card.trust_anchor.ca_cert ?? "");
-            key_file.set_string(id_card.display_name, "Subject", id_card.trust_anchor.subject ?? "");
-            key_file.set_string(id_card.display_name, "SubjectAlt", id_card.trust_anchor.subject_alt ?? "");
-            key_file.set_string(id_card.display_name, "ServerCert", id_card.trust_anchor.server_cert ?? "");
+            key_file.set_string(id_card.display_name, "CA-Cert", id_card.trust_anchor.ca_cert);
+            key_file.set_string(id_card.display_name, "Subject", id_card.trust_anchor.subject);
+            key_file.set_string(id_card.display_name, "SubjectAlt", id_card.trust_anchor.subject_alt);
+            key_file.set_string(id_card.display_name, "ServerCert", id_card.trust_anchor.server_cert);
+            key_file.set_string(id_card.display_name, "TA_DateTime_Added", id_card.trust_anchor.datetime_added);
             key_file.set_boolean(id_card.display_name, "CACert_User_Verified", id_card.trust_anchor.user_verified);
+            logger.trace(@"store_id_cards: Stored '$(id_card.display_name)'");
         }
 
         var text = key_file.to_data(null);
@@ -187,6 +201,7 @@ public class LocalFlatFileStore : Object, IIdentityCardStore {
         try {
             var path = get_data_dir();
             var filename = Path.build_filename(path, FILE_NAME);
+            logger.trace("store_id_cards: attempting to store to " + filename);
             var file  = File.new_for_path(filename);
             var stream = file.replace(null, false, FileCreateFlags.PRIVATE);
             #if GIO_VAPI_USES_ARRAYS
@@ -197,6 +212,7 @@ public class LocalFlatFileStore : Object, IIdentityCardStore {
             #endif
                 }
         catch (Error e) {
+            logger.error("store_id_cards: Error while saving keyfile: %s\n".printf(e.message));
             stdout.printf("Error:  %s\n", e.message);
         }
 

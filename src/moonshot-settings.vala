@@ -100,17 +100,31 @@ private void save_keyfile(KeyFile key_file)
     // streams close automatically
 }
 
-internal void set_bool_setting(string group_name, string key_name, bool value)
+internal void set_bool_setting(string group_name, string key_name, bool value, KeyFile? key_file=null)
 {
-    KeyFile key_file = get_keyfile();
+    KeyFile tmp_key_file = null;
+    if (key_file == null) {
+        // Use tmp_key_file to hold an owned reference (since key_file is unowned)
+        tmp_key_file = get_keyfile();
+        key_file = tmp_key_file;
+    }
 
     key_file.set_boolean(group_name, key_name, value);
-    save_keyfile(key_file);
+
+    if (tmp_key_file != null) {
+        // This is a "one-shot" settings update; save it now.
+        save_keyfile(key_file);
+    }
 }
 
-internal bool get_bool_setting(string group_name, string key_name, bool default=false)
+internal bool get_bool_setting(string group_name, string key_name, bool default=false, KeyFile? key_file=null)
 {
-    KeyFile key_file = get_keyfile();
+    KeyFile tmp_key_file = null;
+    if (key_file == null) {
+        // Use tmp_key_file to hold an owned reference (since key_file is unowned)
+        tmp_key_file = get_keyfile();
+        key_file = tmp_key_file;
+    }
 
     if (key_file == null)
         return default;
@@ -137,17 +151,30 @@ internal bool get_bool_setting(string group_name, string key_name, bool default=
 }
 
 
-internal void set_string_setting(string group_name, string key_name, string value)
+internal void set_string_setting(string group_name, string key_name, string value, KeyFile? key_file=null)
 {
-    KeyFile key_file = get_keyfile();
+    KeyFile tmp_key_file = null;
+    if (key_file == null) {
+        // Use tmp_key_file to hold an owned reference (since key_file is unowned)
+        tmp_key_file = get_keyfile();
+        key_file = tmp_key_file;
+    }
 
     key_file.set_string(group_name, key_name, value);
-    save_keyfile(key_file);
+    if (tmp_key_file != null) {
+        // This is a "one-shot" settings update; save it now.
+        save_keyfile(key_file);
+    }
 }
 
-internal string get_string_setting(string group_name, string key_name, string default="")
+internal string get_string_setting(string group_name, string key_name, string default="", KeyFile? key_file=null)
 {
-    KeyFile key_file = get_keyfile();
+    KeyFile tmp_key_file = null;
+    if (key_file == null) {
+        // Use tmp_key_file to hold an owned reference (since key_file is unowned)
+        tmp_key_file = get_keyfile();
+        key_file = tmp_key_file;
+    }
 
     if (key_file == null)
         return default;

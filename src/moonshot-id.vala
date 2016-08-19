@@ -51,23 +51,25 @@ public class TrustAnchor : Object
     private string _subject = "";
     private string _subject_alt = "";
     private string _server_cert = "";
-
+    private string _datetime_added = "";
     public bool user_verified = false;
 
+    private static string fixup (string s) {
+        return (s == null ? "" : s.strip());
+    }
+
     public TrustAnchor(string ca_cert, string server_cert, string subject, string subject_alt, bool user_verified) {
-        _ca_cert = ca_cert;
-        _server_cert = server_cert;
-        _subject = subject;
-        _subject_alt = subject_alt;
+        _ca_cert = fixup(ca_cert);
+        _server_cert = fixup(server_cert);
+        _subject = fixup(subject);
+        _subject_alt = fixup(subject_alt);
         this.user_verified = user_verified;
+
+        // If we're reading from store, this will be overridden (see set_datetime_added)
+        _datetime_added = "";
     }
 
     public TrustAnchor.empty() {
-        _ca_cert = "";
-        _server_cert = "";
-        _subject = "";
-        _subject_alt = "";
-        this.user_verified = false;
     }
 
 
@@ -96,6 +98,12 @@ public class TrustAnchor : Object
         }
     }
 
+    public string datetime_added {
+        get {
+            return _datetime_added;
+        }
+    }
+
     public bool is_empty() {
         return ca_cert == "" && subject == "" && subject_alt == "" && server_cert == "";
     }
@@ -104,18 +112,36 @@ public class TrustAnchor : Object
         return server_cert == "" ? TrustAnchorType.CA_CERT : TrustAnchorType.SERVER_CERT;
     }
 
+    internal void set_datetime_added(string datetime) {
+        _datetime_added = fixup(datetime);
+    }
+
+    internal static string format_datetime_now() {
+        DateTime now = new DateTime.now_utc();
+        string dt = now.format("%b %d %T %Y %Z");
+        return dt;
+    }
+
     public int Compare(TrustAnchor other)
     {
-        if (this.ca_cert != other.ca_cert)
+        if (this.ca_cert != other.ca_cert) {
             return 1;
-        if (this.subject != other.subject)
+        }
+        if (this.subject != other.subject) {
             return 1;
-        if (this.subject_alt != other.subject_alt)
+        }
+        if (this.subject_alt != other.subject_alt) {
             return 1;
-        if (this.server_cert != other.server_cert)
+        }
+        if (this.server_cert != other.server_cert) {
             return 1;
-        if (this.user_verified != other.user_verified)
+        }
+        if (this.user_verified != other.user_verified) {
             return 1;
+        }
+        // if (!is_empty() && this.datetime_added != other.datetime_added) {
+        //     return 1;
+        // }
         return 0;
     }
 

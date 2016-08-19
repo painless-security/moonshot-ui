@@ -60,6 +60,8 @@ public class KeyringStore : Object, IIdentityCardStore {
                 return idcard;
             }
         }
+
+        logger.error(@"update_card: card '$(card.display_name)' was not found after re-loading!");
         return null;
     }
 
@@ -110,6 +112,7 @@ public class KeyringStore : Object, IIdentityCardStore {
             string subject = "";
             string subject_alt = "";
             bool   user_verified = false;
+            string ta_datetime_added = "";
             for (i = 0; i < entry.attributes.len; i++) {
                 var attribute = ((GnomeKeyring.Attribute *) entry.attributes.data)[i];
                 string value = "";
@@ -141,10 +144,15 @@ public class KeyringStore : Object, IIdentityCardStore {
                     store_password = value;
                 } else if (attribute.name == "CACert_User_Verified") {
                     user_verified = (value == "true");
+                } else if (attribute.name == "TA_DateTime_Added") {
+                    ta_datetime_added = value;
                 }
             }
 
             var ta = new TrustAnchor(ca_cert, server_cert, subject, subject_alt, user_verified);
+            if (ta_datetime_added != "") {
+                ta.set_datetime_added(ta_datetime_added);
+            }
             id_card.set_trust_anchor_from_store(ta);
 
             if ((rules_always_confirm_index != -1) && (rules_patterns_index != -1)) {
@@ -175,7 +183,7 @@ public class KeyringStore : Object, IIdentityCardStore {
         }
     }
 
-    public void store_id_cards() {
+    internal void store_id_cards() {
         logger.trace("store_id_cards");
         clear_keyring();
         foreach (IdCard id_card in this.id_card_list) {
@@ -205,6 +213,7 @@ public class KeyringStore : Object, IIdentityCardStore {
             attributes.append_string("Subject", id_card.trust_anchor.subject);
             attributes.append_string("Subject-Alt", id_card.trust_anchor.subject_alt);
             attributes.append_string("CACert_User_Verified", id_card.trust_anchor.user_verified ? "true" : "false");
+            attributes.append_string("TA_DateTime_Added", id_card.trust_anchor.datetime_added);
             attributes.append_string("StorePassword", id_card.store_password ? "yes" : "no");
 
             GnomeKeyring.Result result = GnomeKeyring.item_create_sync(null,

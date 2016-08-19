@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014, JANET(UK)
+ * Copyright (c) 2011-2016, JANET(UK)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -130,13 +130,33 @@ namespace WebProvisioning
             {
                 if (element_name == "identity")
                 {
-                    logger.trace("start_element_func (%p): Adding an identity".printf(this));
                     card = new IdCard();
                     _cards += card;
+
+                    ta_ca_cert = "";
+                    ta_server_cert = "";
+                    ta_subject = "";
+                    ta_subject_alt = "";
                 }
                 else if (element_name == "rule")
                 {
                     card.add_rule(Rule());
+                }
+            }
+
+            private void end_element_func(MarkupParseContext context,
+                                          string element_name) throws MarkupError
+            {
+                if (element_name == "identity")
+                {
+                    if (ta_ca_cert != "" || ta_server_cert != "") {
+                        var ta = new TrustAnchor(ta_ca_cert,
+                                                 ta_server_cert,
+                                                 ta_subject,
+                                                 ta_subject_alt,
+                                                 false);
+                        card.set_trust_anchor_from_store(ta);
+                    }
                 }
             }
 
@@ -148,8 +168,6 @@ namespace WebProvisioning
 
                 if (text_len < 1)
                     return;
-
-                logger.trace("text_element_func (%p): text='%s'".printf(this, stack.nth_data(0)));
 
                 if (stack.nth_data(0) == "display-name" && display_name_handler(stack))
                 {
@@ -187,62 +205,37 @@ namespace WebProvisioning
                         card.rules[temp.length - 1].always_confirm = text;
                     }
                 }
-                // This is ugly, but... we use the TrustAnchor field in the IdCard as a placeholder,
-                // replacing it with a new one every time we read a new element.
-                // "user_verified" is always false, since we're reading the TrustAnchor from XML.
                 else if (stack.nth_data(0) == "ca-cert" && ca_cert_handler(stack))
                 {
-                    string ca_cert = text;
-                    var ta = new TrustAnchor(ca_cert,
-                                             card.trust_anchor.server_cert,
-                                             card.trust_anchor.subject,
-                                             card.trust_anchor.subject_alt,
-                                             false);
-                    card.set_trust_anchor_from_store(ta);
+                    ta_ca_cert = text ?? "";
                 }
                 else if (stack.nth_data(0) == "server-cert" && server_cert_handler(stack))
                 {
-                    string server_cert = text;
-                    var ta = new TrustAnchor(card.trust_anchor.ca_cert,
-                                             server_cert,
-                                             card.trust_anchor.subject,
-                                             card.trust_anchor.subject_alt,
-                                             false);
-                    card.set_trust_anchor_from_store(ta);
-
+                    ta_server_cert = text ?? "";
                 }
                 else if (stack.nth_data(0) == "subject" && subject_handler(stack))
                 {
-                    string subject = text;
-                    var ta = new TrustAnchor(card.trust_anchor.ca_cert,
-                                             card.trust_anchor.server_cert,
-                                             subject,
-                                             card.trust_anchor.subject_alt,
-                                             false);
-                    card.set_trust_anchor_from_store(ta);
+                    ta_subject = text;
                 }
                 else if (stack.nth_data(0) == "subject-alt" && subject_alt_handler(stack))
                 {
-                    string subject_alt = text;
-                    var ta = new TrustAnchor(card.trust_anchor.ca_cert,
-                                             card.trust_anchor.server_cert,
-                                             card.trust_anchor.subject,
-                                             subject_alt,
-                                             false);
-                    card.set_trust_anchor_from_store(ta);
+                    ta_subject_alt = text;
                 }
             }
 
-
-
         private const MarkupParser parser = {
-            start_element_func, null, text_element_func, null, null
+            start_element_func, end_element_func, text_element_func, null, null
         };
 
         private MarkupParseContext ctx;
 
         private string       text;
         private string       path;
+
+        private string ta_ca_cert;
+        private string ta_server_cert;
+        private string ta_subject;
+        private string ta_subject_alt;
 
         private IdCard card;
         private IdCard[] _cards = {};
@@ -268,8 +261,7 @@ namespace WebProvisioning
                 while ((line = dis.read_line(null)) != null) {
                     text += line;
 
-                    // Preserve newlines -- important for certificate import.
-                    // (X509 certs can't be parsed without the newlines.)
+                    // Preserve newlines.
                     //
                     // This may add an extra newline at EOF. Maybe use
                     // dis.read_upto("\n", ...) followed by dis.read_byte() instead?
@@ -280,8 +272,6 @@ namespace WebProvisioning
             {
                 error("Could not retreive file size");
             }
-
-            logger.trace(@"Parser(): read text to parse; length=$(text.length)");
         }
 
         public void parse() {

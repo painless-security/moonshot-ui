@@ -234,8 +234,7 @@ class IdentityDialog : Dialog
         ta_table.attach(ta_clear_button, 1, 2, row, row + 1, fill, fill, 0, 0);
         row++;
 
-        //!!TODO
-        Label added_label = new Label(_("Added on: N/A"));
+        Label added_label = new Label(_("Added : " + id.trust_anchor.datetime_added));
         added_label.set_alignment(0, 0.5f);
         ta_table.attach(added_label, 0, 1, row, row + 1, opts, opts, 20, 5);
         row++;
