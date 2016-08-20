@@ -38,12 +38,10 @@ public MoonshotLogger get_logger(string name) {
 
 #if USE_LOG4VALA
 
-// To use this, uncomment the line below that calls Log.set_default_handler. (It's often better
-// to let Glib log messages be printed on stderr; but this way, they can be synchronized with
-// our log messages in a single stream.)
 static void glib_default_log_handler(string? log_domain, LogLevelFlags log_level, string message)
 {
     Log4Vala.Logger logger = Log4Vala.Logger.get_logger(log_domain ?? "Glib");
+    stderr.printf(log_level.to_string() + " : " + message + "\n");
     logger.error("Glib error level: " + log_level.to_string() + " : " + message);
 }
 
@@ -55,7 +53,7 @@ public class MoonshotLogger : Object {
 
     public MoonshotLogger(string name) {
         if (!logger_is_initialized) {
-            // Log.set_default_handler(glib_default_log_handler);
+            Log.set_default_handler(glib_default_log_handler);
 
             //!! TODO: Don't hard-code the pathname.
             Log4Vala.init("/home/dbreslau/log4vala.conf");
