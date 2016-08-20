@@ -198,11 +198,35 @@ public class IdCard : Object
 
     public const string NO_IDENTITY = "No Identity";
 
-    private string _nai;
-  
+    private string _username = "";
+    private string _issuer = "";
+
     public string display_name { get; set; default = ""; }
   
-    public string username { get; set; default = ""; }
+    public string username { 
+        public get {
+            return _username;
+        }
+        public set {
+            _username = value;
+            update_nai();
+        }
+    }
+
+    public string issuer { 
+        public get {
+            return _issuer;
+        }
+        public set {
+            _issuer = value;
+            update_nai();
+        }
+    }
+
+    private void update_nai() {
+        _nai = username + "@" + issuer;
+    }
+
 #if GNOME_KEYRING
     private unowned string _password;
     public string password {
@@ -222,8 +246,6 @@ public class IdCard : Object
     public string password { get; set; default = null; }
 #endif
 
-    public string issuer { get; set; default = ""; }
-  
     private Rule[] _rules = new Rule[0];
     public Rule[] rules {
         get {return _rules;}
@@ -302,7 +324,7 @@ public class IdCard : Object
         _trust_anchor = new TrustAnchor.empty();
     }
   
-    public unowned string nai { get {  _nai = username + "@" + issuer; return _nai;}}
+    public string nai { public get; private set;}
 
     public bool store_password { get; set; default = false; }
 
