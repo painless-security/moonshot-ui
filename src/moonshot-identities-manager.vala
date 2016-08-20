@@ -244,9 +244,11 @@ public class IdentityManagerModel : Object {
 
     public bool remove_card(IdCard card) {
         if (remove_card_internal(card)) {
+            logger.trace(@"remove_card: Removed '$(card.display_name)'");
             card_list_changed();
             return true;
         }
+        logger.warn(@"remove_card: Couldn't remove '$(card.display_name)'");
         return false;
     }
 

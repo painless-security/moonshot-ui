@@ -67,6 +67,8 @@ public class IdentityManagerView : Window {
 
     internal CheckButton remember_identity_binding = null;
 
+    private IdCard selected_idcard = null;
+
     private enum Columns
     {
         IDCARD_COL,
@@ -100,7 +102,8 @@ public class IdentityManagerView : Window {
         connect_signals();
     }
     
-    public void on_card_list_changed() {
+    private void on_card_list_changed() {
+        logger.trace("on_card_list_changed");
         load_id_cards();
     }
     
@@ -182,26 +185,12 @@ public class IdentityManagerView : Window {
         filter.set_visible_func(visible_func);
     }
 
-    private void search_entry_icon_press_cb(EntryIconPosition pos, Gdk.Event event)
-    {
-        if (pos == EntryIconPosition.PRIMARY)
-        {
-            print("Search entry icon pressed\n");
-        }
-        else
-        {
-            this.search_entry.set_text("");
-        }
-    }
-
     private void search_entry_text_changed_cb()
     {
         this.filter.refilter();
         redraw_id_card_widgets();
 
         var has_text = this.search_entry.get_text_length() > 0;
-        this.search_entry.set_icon_sensitive(EntryIconPosition.PRIMARY, has_text);
-        this.search_entry.set_icon_sensitive(EntryIconPosition.SECONDARY, has_text);
     }
 
     private bool search_entry_key_press_event_cb(Gdk.EventKey e)
@@ -217,12 +206,6 @@ public class IdentityManagerView : Window {
     private void load_id_cards() {
         logger.trace("load_id_cards");
 
-        string current_idcard_nai = null;
-        if (this.custom_vbox.current_idcard != null) {
-            current_idcard_nai = custom_vbox.current_idcard.id_card.nai;
-            custom_vbox.current_idcard = null;
-        }
-
         custom_vbox.clear();
         this.listmodel->clear();
         LinkedList<IdCard> card_list = identities_manager.get_card_list() ;
@@ -234,10 +217,6 @@ public class IdentityManagerView : Window {
             logger.trace(@"load_id_cards: Loading card with display name '$(id_card.display_name)'");
             add_id_card_data(id_card);
             IdCardWidget id_card_widget = add_id_card_widget(id_card);
-            if (id_card_widget.id_card.nai == current_idcard_nai) {
-                // fill_details(id_card_widget.id_card);
-                id_card_widget.expand();
-            }
         }
     }
     
@@ -296,15 +275,28 @@ public class IdentityManagerView : Window {
 
     private IdCardWidget add_id_card_widget(IdCard id_card)
     {
+        logger.trace("add_id_card_widget: id_card.nai='%s'; selected nai='%s'"
+                     .printf(id_card.nai, 
+                             this.selected_idcard == null ? "[null selection]" : this.selected_idcard.nai));
+
+
         var id_card_widget = new IdCardWidget(id_card, this);
         this.custom_vbox.add_id_card_widget(id_card_widget);
         id_card_widget.expanded.connect(this.widget_selected_cb);
         id_card_widget.collapsed.connect(this.widget_unselected_cb);
+
+        if (this.selected_idcard != null && this.selected_idcard.nai == id_card.nai) {
+            logger.trace(@"add_id_card_widget: Expanding selected idcard widget");
+            id_card_widget.expand();
+        }
         return id_card_widget;
     }
 
     private void widget_selected_cb(IdCardWidget id_card_widget)
     {
+        logger.trace(@"widget_selected_cb: id_card_widget.id_card.display_name='$(id_card_widget.id_card.display_name)'");
+
+        this.selected_idcard = id_card_widget.id_card;
         bool allow_removes = !id_card_widget.id_card.is_no_identity();
         this.remove_button.set_sensitive(allow_removes);
         this.edit_button.set_sensitive(true);
@@ -316,6 +308,9 @@ public class IdentityManagerView : Window {
 
     private void widget_unselected_cb(IdCardWidget id_card_widget)
     {
+        logger.trace(@"widget_unselected_cb: id_card_widget.id_card.display_name='$(id_card_widget.id_card.display_name)'");
+
+        this.selected_idcard = null;
         this.remove_button.set_sensitive(false);
         this.edit_button.set_sensitive(false);
         this.custom_vbox.receive_collapsed_event(id_card_widget);
@@ -412,11 +407,14 @@ public class IdentityManagerView : Window {
         dialog.destroy();
     }
 
-    private void remove_identity(IdCardWidget id_card_widget)
+    private void remove_identity(IdCard id_card)
     {
-        var id_card = id_card_widget.id_card;
-        this.custom_vbox.remove_id_card_widget(id_card_widget);
+        logger.trace(@"remove_identity: id_card.display_name='$(id_card.display_name)'");
+        if (id_card != this.selected_idcard) {
+            logger.error("remove_identity: id_card != this.selected_idcard!");
+        }
 
+        this.selected_idcard = null;
         this.identities_manager.remove_card(id_card);
 
         // Nothing is selected, so disable buttons
@@ -427,8 +425,6 @@ public class IdentityManagerView : Window {
 
     private void redraw_id_card_widgets()
     {
-        logger.trace("redraw_id_card_widgets");
-
         TreeIter iter;
         IdCard id_card;
 
@@ -447,10 +443,8 @@ public class IdentityManagerView : Window {
         }
     }
 
-    private void remove_identity_cb(IdCardWidget id_card_widget)
+    private void remove_identity_cb(IdCard id_card)
     {
-        var id_card = id_card_widget.id_card;
-
         bool remove = WarningDialog.confirm(this, 
                                             Markup.printf_escaped(
                                                 "<span font-weight='heavy'>You are about to remove the identity '%s'.</span>",
@@ -458,7 +452,7 @@ public class IdentityManagerView : Window {
                                             + "\n\nAre you sure you want to do this?",
                                             "delete_idcard");
         if (remove) 
-            remove_identity(id_card_widget);
+            remove_identity(id_card);
     }
 
     private void set_prompting_service(string service)
@@ -501,6 +495,13 @@ public class IdentityManagerView : Window {
             redraw_id_card_widgets();
             set_prompting_service(request.service);
             remember_identity_binding.show();
+
+            if (this.selected_idcard != null
+                && this.custom_vbox.find_idcard_widget(this.selected_idcard) != null) {
+                // A widget is already selected, and has not been filtered out of the display via search
+                send_button.set_sensitive(true);
+            }
+
             make_visible();
         }
     }
@@ -743,20 +744,13 @@ SUCH DAMAGE.
         this.search_entry = new Entry();
 
         set_atk_name_description(search_entry, _("Search entry"), _("Search for a specific ID Card"));
-        this.search_entry.set_icon_from_pixbuf(EntryIconPosition.PRIMARY,
-                                               find_icon_sized("edit-find", Gtk.IconSize.MENU));
-        this.search_entry.set_icon_tooltip_text(EntryIconPosition.PRIMARY,
-                                                _("Search for an identity or service"));
-        this.search_entry.set_icon_sensitive(EntryIconPosition.PRIMARY, false);
-
         this.search_entry.set_icon_from_pixbuf(EntryIconPosition.SECONDARY,
-                                               find_icon_sized("process-stop", Gtk.IconSize.MENU));
+                                               find_icon_sized("edit-find", Gtk.IconSize.MENU));
         this.search_entry.set_icon_tooltip_text(EntryIconPosition.SECONDARY,
-                                                _("Clear the current search"));
+                                                _("Search for an identity or service"));
+
         this.search_entry.set_icon_sensitive(EntryIconPosition.SECONDARY, false);
 
-
-        this.search_entry.icon_press.connect(search_entry_icon_press_cb);
         this.search_entry.notify["text"].connect(search_entry_text_changed_cb);
         this.search_entry.key_press_event.connect(search_entry_key_press_event_cb);
         this.search_entry.set_width_chars(30);
@@ -813,15 +807,15 @@ SUCH DAMAGE.
         add_button.clicked.connect((w) => {add_identity_cb();});
 
         this.edit_button = new Button.with_label(_("Edit"));
-        edit_button.clicked.connect((w) => {edit_identity_cb(custom_vbox.current_idcard.id_card);});
+        edit_button.clicked.connect((w) => {edit_identity_cb(this.selected_idcard);});
         edit_button.set_sensitive(false);
 
         this.remove_button = new Button.with_label(_("Remove"));
-        remove_button.clicked.connect((w) => {remove_identity_cb(custom_vbox.current_idcard);});
+        remove_button.clicked.connect((w) => {remove_identity_cb(this.selected_idcard);});
         remove_button.set_sensitive(false);
 
         this.send_button = new Button.with_label(_("Send"));
-        send_button.clicked.connect((w) => {send_identity_cb(custom_vbox.current_idcard.id_card);});
+        send_button.clicked.connect((w) => {send_identity_cb(this.selected_idcard);});
         // send_button.set_visible(false);
         send_button.set_sensitive(false);
 

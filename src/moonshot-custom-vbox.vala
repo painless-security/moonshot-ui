@@ -34,7 +34,6 @@ using Gtk;
 class CustomVBox : VBox
 {
     static MoonshotLogger logger = get_logger("CustomVBox");
-    public IdCardWidget current_idcard { get; set; default = null; }
     private IdentityManagerView main_window; 
     int next_pos = 0;
     
@@ -53,14 +52,12 @@ class CustomVBox : VBox
             if (id_card != id_card_widget)
                 ((IdCardWidget) id_card).collapse();
         }
-        current_idcard = id_card_widget;
         
         check_resize();
     }
 
     internal void receive_collapsed_event(IdCardWidget id_card_widget)
     {
-        current_idcard = null;
         check_resize();
     }
 
@@ -70,18 +67,27 @@ class CustomVBox : VBox
         id_card_widget.position = next_pos++;
     }
 
-    public void remove_id_card_widget(IdCardWidget id_card_widget)
+    public IdCardWidget find_idcard_widget(IdCard id_card) {
+        foreach (var w in get_children()) {
+            IdCardWidget widget = (IdCardWidget) w;
+            if (widget.id_card.nai == id_card.nai) {
+                return widget;
+            }
+        }
+        return null;
+    }
+
+    public void remove_id_card(IdCard id_card)
     {
-        remove(id_card_widget);
-
-        // Caller will eventually clear the list, re-setting all positions. I hope.
-
-        // var list = get_children();
-        // next_pos = 0;
-        // foreach (Widget id_card in list)
-        // {
-        //     id_card_widget.position = next_pos++;
-        // }
+        logger.trace("remove_id_card: Have %u children".printf(get_children().length()));
+        var widget = find_idcard_widget(id_card);
+        if (widget != null) {
+            logger.trace(@"remove_id_card: Removing '$(id_card.display_name)'");
+            remove(widget);
+        }
+        else {
+            logger.trace(@"remove_id_card: Couldn't find widget for '$(id_card.display_name)'");
+        }
     }
 
     internal void clear()
@@ -90,7 +96,7 @@ class CustomVBox : VBox
 
         var children = get_children();
         foreach (var id_card_widget in children) {
-            remove_id_card_widget((IdCardWidget) id_card_widget);
+            remove(id_card_widget);
         }
 
         next_pos = 0;

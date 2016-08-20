@@ -57,13 +57,13 @@ class IdCardWidget : Box
     public signal void expanded();
     public signal void collapsed();
 
-    private void select()
+    internal void select()
     {
         expand();
         this.expanded();
     }
 
-    private void unselect()
+    internal void unselect()
     {
         collapse();
         this.collapsed();
@@ -76,7 +76,6 @@ class IdCardWidget : Box
 
         set_idcard_color();
         arrow.set(ArrowType.DOWN, ARROW_SHADOW);
-        this.expanded();
     }
 
     public void collapse()
