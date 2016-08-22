@@ -131,7 +131,7 @@ internal Widget make_ta_fingerprint_widget(TrustAnchor trust_anchor)
         var fingerprint = new TextView();
         fingerprint.set_editable(false);
         var buffer = fingerprint.get_buffer();
-        buffer.set_text(colonize(trust_anchor.server_cert), -1);
+        buffer.set_text(colonize(trust_anchor.server_cert, 16), -1);
         fingerprint.wrap_mode = WrapMode.WORD_CHAR;
 
         set_atk_relation(fingerprint_label, fingerprint, Atk.RelationType.LABEL_FOR);
@@ -139,7 +139,7 @@ internal Widget make_ta_fingerprint_widget(TrustAnchor trust_anchor)
         var fingerprint_width_constraint = new ScrolledWindow(null, null);
         fingerprint_width_constraint.set_policy(PolicyType.NEVER, PolicyType.NEVER);
         fingerprint_width_constraint.set_shadow_type(ShadowType.IN);
-        fingerprint_width_constraint.set_size_request(400, 60);
+        fingerprint_width_constraint.set_size_request(300, 60);
         fingerprint_width_constraint.add_with_viewport(fingerprint);
 
         var vbox = new VBox(false, 0);
@@ -149,17 +149,23 @@ internal Widget make_ta_fingerprint_widget(TrustAnchor trust_anchor)
 }
 
     // Yeah, it doesn't mean "colonize" the way you might think... :-)
-internal static string colonize(string input) {
+internal static string colonize(string input, int bytes_per_line) {
     return_if_fail(input.length % 2 == 0);
 
     string result = "";
     int i = 0;
+    int line_bytes = 0;
     while (i < input.length) {
-        if (i > 0) {
+        if (line_bytes == bytes_per_line) {
+            result += "\n";
+            line_bytes = 0;
+        }
+        else if (i > 0) {
             result += ":";
         }
         result += input[i : i + 2];
         i += 2;
+        line_bytes++;
     }
     return result;
 }

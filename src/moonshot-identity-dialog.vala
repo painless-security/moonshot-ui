@@ -165,18 +165,10 @@ class IdentityDialog : Dialog
         add_as_vbox(content_area, realm_label, realm_entry);
         add_as_vbox(content_area, password_label, password_entry);
 
-        // var entries = new VBox(false, 6);
-        // add_as_vbox(entries, displayname_label, displayname_entry);
-        // add_as_vbox(entries, realm_label, realm_entry);
-        // add_as_vbox(entries, username_label, username_entry);
-        // add_as_vbox(entries, password_label, password_entry);
-        // content_area.pack_start(entries, false, false, 0);
-
         var remember_hbox = new HBox(false, 40);
         remember_hbox.pack_start(new HBox(false, 0), false, false, 0);
         remember_hbox.pack_start(remember_checkbutton, false, false, 0);
         content_area.pack_start(remember_hbox, false, false, 2);
-        // content_area.pack_start(remember_checkbutton, false, false, 2);
 
         this.response.connect(on_response);
         content_area.set_border_width(6);
@@ -188,6 +180,9 @@ class IdentityDialog : Dialog
 
             var services_vbox = make_services_vbox();
             content_area.pack_start(services_vbox);
+            var services_vbox_bottom_spacer = new Alignment(0, 0, 0, 0);
+            services_vbox_bottom_spacer.set_size_request(0, 12);
+            content_area.pack_start(services_vbox_bottom_spacer, false, false, 0);
         }
 
         if (card.is_no_identity())
@@ -217,7 +212,7 @@ class IdentityDialog : Dialog
         }
 
 
-        AttachOptions opts = AttachOptions.EXPAND | AttachOptions.FILL;
+        AttachOptions fill_and_expand = AttachOptions.EXPAND | AttachOptions.FILL;
         AttachOptions fill = AttachOptions.FILL;
 
         Table ta_table = new Table(6, 2, false);
@@ -230,18 +225,22 @@ class IdentityDialog : Dialog
             }
             );
 
-        ta_table.attach(ta_label, 0, 1, row, row + 1, opts, opts, 0, 0);
+        ta_table.attach(ta_label, 0, 1, row, row + 1, fill_and_expand, fill_and_expand, 0, 0);
         ta_table.attach(ta_clear_button, 1, 2, row, row + 1, fill, fill, 0, 0);
         row++;
 
         Label added_label = new Label(_("Added : " + id.trust_anchor.datetime_added));
         added_label.set_alignment(0, 0.5f);
-        ta_table.attach(added_label, 0, 1, row, row + 1, opts, opts, 20, 5);
+        ta_table.attach(added_label, 0, 1, row, row + 1, fill_and_expand, fill_and_expand, 20, 5);
         row++;
 
         if (id.trust_anchor.get_anchor_type() == TrustAnchor.TrustAnchorType.SERVER_CERT) {
             Widget fingerprint = make_ta_fingerprint_widget(id.trust_anchor);
-            ta_table.attach(fingerprint, 0, 2, row, row + 2, opts, opts, 20, 5);
+            ta_table.attach(fingerprint, 0, 1, row, row + 2, fill_and_expand, fill_and_expand, 5, 5);
+
+            // To make the fingerprint box wider, try:
+            // ta_table.attach(fingerprint, 0, 2, row, row + 2, fill_and_expand, fill_and_expand, 20, 5);
+
         }
         else {
             Label ca_cert_label = new Label(_("CA Certificate:"));
@@ -250,25 +249,25 @@ class IdentityDialog : Dialog
             //!!TODO!
             export_button.clicked.connect((w) => {export_certificate(id);});
 
-            ta_table.attach(ca_cert_label, 0, 1, row, row + 1, opts, opts, 20, 0);
+            ta_table.attach(ca_cert_label, 0, 1, row, row + 1, fill_and_expand, fill_and_expand, 20, 0);
             ta_table.attach(export_button, 1, 2, row, row + 1, fill, fill, 0, 0);
             row++;
 
             //!!TODO: When to show Subject, and when (if ever) show Subject-Altname here?
             Label subject_label = new Label(_("Subject: ") + id.trust_anchor.subject);
             subject_label.set_alignment(0, 0.5f);
-            ta_table.attach(subject_label, 0, 1, row, row + 1, opts, opts, 40, 5);
+            ta_table.attach(subject_label, 0, 1, row, row + 1, fill_and_expand, fill_and_expand, 40, 5);
             row++;
 
             Label expiration_label = new Label(_("Expiration date: ") + id.trust_anchor.get_expiration_date());
             expiration_label.set_alignment(0, 0.5f);
-            ta_table.attach(expiration_label, 0, 1, row, row + 1, opts, opts, 40, 5);
+            ta_table.attach(expiration_label, 0, 1, row, row + 1, fill_and_expand, fill_and_expand, 40, 5);
             row++;
 
             //!!TODO: What *is* this?
             Label constraint_label = new Label(_("Constraint: "));
             constraint_label.set_alignment(0, 0.5f);
-            ta_table.attach(constraint_label, 0, 1, row, row + 1, opts, opts, 20, 0);
+            ta_table.attach(constraint_label, 0, 1, row, row + 1, fill_and_expand, fill_and_expand, 20, 0);
             row++;
         }
 
@@ -388,7 +387,7 @@ class IdentityDialog : Dialog
         services_table.modify_bg(StateType.NORMAL, white);
 
         var table_button_hbox = new HBox(false, 6);
-        table_button_hbox.pack_start(services_vscroll, true, true, 6);
+        table_button_hbox.pack_start(services_vscroll, true, true, 4);
 
         // Hack to prevent the button from growing vertically
         VBox fixed_height = new VBox(false, 0);
@@ -403,7 +402,6 @@ class IdentityDialog : Dialog
         services_vbox_alignment.add(table_bg);
 
         var services_vbox_title = new Label(_("Services:"));
-        label_make_bold(services_vbox_title);
         services_vbox_title.set_alignment(0, 0.5f);
 
         var services_vbox = new VBox(false, 6);
