@@ -77,19 +77,6 @@ class CustomVBox : VBox
         return null;
     }
 
-    public void remove_id_card(IdCard id_card)
-    {
-        logger.trace("remove_id_card: Have %u children".printf(get_children().length()));
-        var widget = find_idcard_widget(id_card);
-        if (widget != null) {
-            logger.trace(@"remove_id_card: Removing '$(id_card.display_name)'");
-            remove(widget);
-        }
-        else {
-            logger.trace(@"remove_id_card: Couldn't find widget for '$(id_card.display_name)'");
-        }
-    }
-
     internal void clear()
     {
         logger.trace("clear");
