@@ -741,9 +741,23 @@ SUCH DAMAGE.
 
         create_ui_manager();
 
-        this.search_entry = new Entry();
+        int num_rows = 18;
+        int num_cols = 8;
+        int button_width = 1;
+
+        Table top_table = new Table(num_rows, 10, false);
+        top_table.set_border_width(12);
+
+        AttachOptions fill_and_expand = AttachOptions.EXPAND | AttachOptions.FILL;
+        AttachOptions fill = AttachOptions.FILL;
+        int row = 0;
+
+        service_prompt_vbox = new VBox(false, 0);
+        top_table.attach(service_prompt_vbox, 0, 1, row, row + 1, fill_and_expand, fill_and_expand, 12, 0);
+        row++;
 
         string search_tooltip_text = _("Search for an identity or service");
+        this.search_entry = new Entry();
 
         set_atk_name_description(search_entry, _("Search entry"), _("Search for a specific ID Card"));
         this.search_entry.set_icon_from_pixbuf(EntryIconPosition.SECONDARY,
@@ -757,8 +771,23 @@ SUCH DAMAGE.
 
         this.search_entry.notify["text"].connect(search_entry_text_changed_cb);
         this.search_entry.key_press_event.connect(search_entry_key_press_event_cb);
-        this.search_entry.set_width_chars(30);
+        this.search_entry.set_width_chars(24);
 
+        var search_label_markup =_("<small>") + search_tooltip_text + _("</small>");
+        var full_search_label = new Label(null);
+        full_search_label.set_markup(search_label_markup);
+        full_search_label.set_alignment(1, 0);
+
+        var search_vbox = new VBox(false, 0);
+        search_vbox.pack_start(search_entry, false, false, 0);
+        var search_spacer = new Alignment(0, 0, 0, 0);
+        search_spacer.set_size_request(0, 2);
+        search_vbox.pack_start(search_spacer, false, false, 0);
+        search_vbox.pack_start(full_search_label, false, false, 0);
+
+        // Overlap with the service_prompt_box
+        top_table.attach(search_vbox, 5, num_cols - button_width, row - 1, row + 1, fill_and_expand, fill, 0, 12);
+        row++;
 
         this.custom_vbox = new CustomVBox(this, false, 2);
 
@@ -770,73 +799,41 @@ SUCH DAMAGE.
         id_scrollwin.set_policy(PolicyType.NEVER, PolicyType.AUTOMATIC);
         id_scrollwin.set_shadow_type(ShadowType.IN);
         id_scrollwin.add_with_viewport(viewport);
+        top_table.attach(id_scrollwin, 0, num_cols - 1, row, num_rows - 1, fill_and_expand, fill_and_expand, 6, 0);
 
-        service_prompt_vbox = new VBox(false, 0);
-
-        var vbox_left = new VBox(false, 0);
-        vbox_left.pack_start(service_prompt_vbox, false, false, 12);
-
-        var search_hbox = new HBox(false, 6);
-        search_hbox.pack_end(search_entry, false, false, 0);
-        //// var search_label = new Label(_("Search:"));
-        //// search_label.set_alignment(1, (float) 0.5);
-        //// set_atk_relation(search_label, search_entry, Atk.RelationType.LABEL_FOR);
-        //// search_hbox.pack_end(search_label, false, false, 6);
-
-        var full_search_label = new Label(_("Search for an identity or service"));
-        full_search_label.set_alignment(1, 0);
-        var search_vbox = new VBox(false, 4);
-        search_vbox.pack_start(full_search_label, false, false, 0);
-        search_vbox.pack_start(search_hbox, false, false, 0);
-
-        var inner_left_vbox = new VBox(false, 6);
-        inner_left_vbox.pack_start(search_vbox, false, false, 6);
-//        inner_left_vbox.pack_start(selection_prompt, false, false, 6);
-        inner_left_vbox.pack_start(id_scrollwin, true, true, 0);
-
-        var id_and_button_box = new HBox(false, 6);
-        id_and_button_box.pack_start(inner_left_vbox, true, true, 6);
-        vbox_left.pack_start(id_and_button_box, true, true, 0);
-        // vbox_left.pack_start(prompting_service, false, false, 6);
-        vbox_left.set_size_request(WINDOW_WIDTH, 0);
-
-        this.no_identity_title = new Label(_("No Identity: Send this identity to services which should not use Moonshot"));
-        no_identity_title.set_alignment(0, (float ) 0.5);
-        no_identity_title.set_line_wrap(true);
-        no_identity_title.show();
-
-        this.vbox_right = new VBox(false, 6);
+        // Right below id_scrollwin:
+        remember_identity_binding = new CheckButton.with_label(_("Remember my identity choice for this service"));
+        remember_identity_binding.active = false;
+        top_table.attach(remember_identity_binding, 0, num_cols / 2, num_rows - 1, num_rows, fill_and_expand, fill_and_expand, 3, 0);
 
         var add_button = new Button.with_label(_("Add"));
         add_button.clicked.connect((w) => {add_identity_cb();});
+        top_table.attach(make_rigid(add_button), num_cols - button_width, num_cols, row, row + 1, fill, fill, 0, 0);
+        logger.trace("build_ui: row spacing for row %d is %u".printf(row, top_table.get_row_spacing(row)));
+        row++;
 
         this.edit_button = new Button.with_label(_("Edit"));
         edit_button.clicked.connect((w) => {edit_identity_cb(this.selected_idcard);});
         edit_button.set_sensitive(false);
+        top_table.attach(make_rigid(edit_button), num_cols - button_width, num_cols, row, row + 1, fill, fill, 0, 0);
+        row++;
 
         this.remove_button = new Button.with_label(_("Remove"));
         remove_button.clicked.connect((w) => {remove_identity_cb(this.selected_idcard);});
         remove_button.set_sensitive(false);
+        top_table.attach(make_rigid(remove_button), num_cols - button_width, num_cols, row, row + 1, fill, fill, 0, 0);
+        row++;
 
+        // push the send button down another row.
+        row++;
         this.send_button = new Button.with_label(_("Send"));
         send_button.clicked.connect((w) => {send_identity_cb(this.selected_idcard);});
         // send_button.set_visible(false);
         send_button.set_sensitive(false);
-
-        var empty_box = new VBox(false, 0);
-        empty_box.set_size_request(0, 0);
-        vbox_right.pack_start(empty_box, false, false, 14);
-        vbox_right.pack_start(add_button, false, false, 6);
-        vbox_right.pack_start(edit_button, false, false, 6);
-        vbox_right.pack_start(remove_button, false, false, 6);
-        vbox_right.pack_start(send_button, false, false, 24);
-
-        id_and_button_box.pack_start(vbox_right, false, false, 0);
+        top_table.attach(make_rigid(send_button), num_cols - button_width, num_cols, row, row + 1, fill, fill, 0, 0);
+        row++;
 
         var main_vbox = new VBox(false, 0);
-
-        // Note: This places a border above the menubar. Is that what we want?
-        main_vbox.set_border_width(12);
 
 #if OS_MACOS
         // hide the  File | Quit menu item which is now on the Mac Menu
@@ -855,11 +852,7 @@ SUCH DAMAGE.
         main_vbox.pack_start(menubar, false, false, 0);
         menubar.modify_bg(StateType.NORMAL, white);
 #endif
-        main_vbox.pack_start(vbox_left, true, true, 0);
-
-        remember_identity_binding = new CheckButton.with_label(_("Remember my identity choice for this service"));
-        remember_identity_binding.active = false;
-        main_vbox.pack_start(remember_identity_binding, false, false, 6);
+        main_vbox.pack_start(top_table, true, true, 6);
 
         add(main_vbox);
         main_vbox.show_all();
@@ -909,4 +902,14 @@ SUCH DAMAGE.
         // Allow the window deletion to proceed.
         return false;
     }
+
+    private static Widget make_rigid(Button button) 
+    {
+        // Hack to prevent the button from growing vertically
+        VBox fixed_height = new VBox(false, 0);
+        fixed_height.pack_start(button, false, false, 0);
+
+        return fixed_height;
+    }
+
 }
