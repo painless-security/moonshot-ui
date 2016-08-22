@@ -31,6 +31,7 @@
 */
 
 using Gtk;
+using Pango;
 
 #if OS_WIN32
 extern string? g_win32_get_package_installation_directory_of_module(void *module);
@@ -129,10 +130,13 @@ internal Widget make_ta_fingerprint_widget(TrustAnchor trust_anchor)
         fingerprint_label.set_alignment(0, 0.5f);
 
         var fingerprint = new TextView();
+        var fontdesc = FontDescription.from_string("monospace 10");
+        fingerprint.modify_font(fontdesc);
         fingerprint.set_editable(false);
+        fingerprint.set_left_margin(3);
         var buffer = fingerprint.get_buffer();
         buffer.set_text(colonize(trust_anchor.server_cert, 16), -1);
-        fingerprint.wrap_mode = WrapMode.WORD_CHAR;
+        fingerprint.wrap_mode = Gtk.WrapMode.WORD_CHAR;
 
         set_atk_relation(fingerprint_label, fingerprint, Atk.RelationType.LABEL_FOR);
 
