@@ -743,11 +743,15 @@ SUCH DAMAGE.
 
         this.search_entry = new Entry();
 
+        string search_tooltip_text = _("Search for an identity or service");
+
         set_atk_name_description(search_entry, _("Search entry"), _("Search for a specific ID Card"));
         this.search_entry.set_icon_from_pixbuf(EntryIconPosition.SECONDARY,
                                                find_icon_sized("edit-find", Gtk.IconSize.MENU));
         this.search_entry.set_icon_tooltip_text(EntryIconPosition.SECONDARY,
-                                                _("Search for an identity or service"));
+                                                search_tooltip_text);
+
+        this.search_entry.set_tooltip_text(search_tooltip_text);
 
         this.search_entry.set_icon_sensitive(EntryIconPosition.SECONDARY, false);
 
