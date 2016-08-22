@@ -132,7 +132,7 @@ class IdCardWidget : Box
 
         var display_name = (manager_view.selection_in_progress() && this.id_card.is_no_identity()
                             ? "Do not use a Moonshot identity for this service" : this.id_card.display_name);
-        var label_text = Markup.printf_escaped(_("<big>%s</big>"), display_name);
+        var label_text = Markup.printf_escaped(_("<span rise='8000'><big>%s</big></span>"), display_name);
 
         if (is_selected)
         {
