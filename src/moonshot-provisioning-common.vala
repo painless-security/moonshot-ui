@@ -155,13 +155,7 @@ namespace WebProvisioning
                                              ta_subject,
                                              ta_subject_alt,
                                              false);
-                    if (!ta.is_empty()) {
-                        string ta_datetime_added = TrustAnchor.format_datetime_now();
-                        ta.set_datetime_added(ta_datetime_added);
-                        logger.trace("end_element_func : Set ta_datetime_added for '%s' to '%s'".printf(card.display_name, ta_datetime_added));
-                        card.set_trust_anchor_from_store(ta);
-                    }
-
+                    // Set the datetime_added in moonshot-server.vala, since it doesn't get sent via IPC
                     card.set_trust_anchor_from_store(ta);
                 }
             }

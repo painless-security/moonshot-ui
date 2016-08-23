@@ -37,7 +37,7 @@ namespace WebProvisioning
 
     public static int main(string[] args)
     {
-        logger = new MoonshotLogger("WebProvisioning");
+        logger = new MoonshotLogger("WebProvisioning (WebpParser)");
 
         int arg_index = -1;
         int force_flat_file_store = 0;

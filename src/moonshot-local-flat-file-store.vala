@@ -131,6 +131,7 @@ public class LocalFlatFileStore : Object, IIdentityCardStore {
                 id_card_list.add(id_card);
             }
             catch (Error e) {
+                logger.error("load_id_cards: Error while loading keyfile: %s\n".printf(e.message));
                 stdout.printf("Error:  %s\n", e.message);
             }
         }

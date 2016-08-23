@@ -299,7 +299,7 @@ public class IdentityManagerView : Window {
         this.send_button.set_sensitive(false);
     }
 
-    public bool add_identity(IdCard id_card, bool force_flat_file_store)
+    public bool add_identity(IdCard id_card, bool force_flat_file_store, out ArrayList<IdCard>? old_duplicates=null)
     {
         #if OS_MACOS
         /* 
@@ -316,6 +316,10 @@ public class IdentityManagerView : Window {
             int flags = prev_id.Compare(id_card);
             logger.trace("add_identity: compare returned " + flags.to_string());
             if (flags == 0) {
+                if (&old_duplicates != null) {
+                    old_duplicates = new ArrayList<IdCard>();
+                }
+
                 return false; // no changes, no need to update
             } else if ((flags & (1 << IdCard.DiffFlags.DISPLAY_NAME)) != 0) {
                 dialog = new Gtk.MessageDialog(this,
@@ -348,10 +352,15 @@ public class IdentityManagerView : Window {
         #endif
 
         if (ret == Gtk.ResponseType.YES) {
-            this.identities_manager.add_card(id_card, force_flat_file_store);
+            this.identities_manager.add_card(id_card, force_flat_file_store, out old_duplicates);
             return true;
         }
-        return false;
+        else {
+            if (&old_duplicates != null) {
+                old_duplicates = new ArrayList<IdCard>();
+            }
+            return false;
+        }
     }
 
     private void add_identity_cb()
@@ -887,7 +896,7 @@ SUCH DAMAGE.
                                            this,
                                            FileChooserAction.OPEN,
                                            _("Cancel"),ResponseType.CANCEL,
-                                           _("Save"), ResponseType.ACCEPT,
+                                           _("Open"), ResponseType.ACCEPT,
                                            null);
 
         if (import_directory != null) {
@@ -915,6 +924,14 @@ SUCH DAMAGE.
                     continue;
                 }
 
+                if (!card.trust_anchor.is_empty()) {
+                    string ta_datetime_added = TrustAnchor.format_datetime_now();
+                    card.trust_anchor.set_datetime_added(ta_datetime_added);
+                    logger.trace("import_identities_cb : Set ta_datetime_added for '%s' to '%s'; ca_cert='%s'; server_cert='%s'"
+                                 .printf(card.display_name, ta_datetime_added, card.trust_anchor.ca_cert, card.trust_anchor.server_cert));
+                }
+
+
                 bool result = add_identity(card, use_flat_file_store);
                 if (result) {
                     logger.trace(@"import_identities_cb: Added or updated '$(card.display_name)'");
@@ -933,6 +950,7 @@ SUCH DAMAGE.
             msg_dialog.run();
             msg_dialog.destroy();
         }
+        dialog.destroy();
     }
 
 }

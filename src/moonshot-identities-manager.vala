@@ -142,30 +142,32 @@ public class IdentityManagerModel : Object {
         return true;
     }
 
-    private bool remove_duplicates(IdCard new_card)
+    private bool remove_duplicates(IdCard new_card, out ArrayList<IdCard>? old_duplicates)
     {
-        bool duplicate_found = false;
-        bool found = false;
-        do {
-            var cards = this.store.get_card_list();
-            found = false;
-            foreach (IdCard id_card in cards) {
-                if ((new_card != id_card) && (id_card.nai == new_card.nai)) {
-                    stdout.printf("removing duplicate id for '%s'\n", new_card.nai);
-                    logger.trace("removing duplicate id for '%s'\n".printf(new_card.nai));
-                    remove_card_internal(id_card);
-                    found = duplicate_found = true;
-
-                    if (new_card.trust_anchor.Compare(id_card.trust_anchor) == 0) {
-                        logger.trace("Old and new cards have same trust anchor. Re-using the datetime_added and user_verified fields from the old card.");
-                        new_card.trust_anchor.set_datetime_added(id_card.trust_anchor.datetime_added);
-                        new_card.trust_anchor.user_verified = id_card.trust_anchor.user_verified;
-                    }
-                    break;
-                }
+        ArrayList<IdCard> dups = new ArrayList<IdCard>();
+        var cards = this.store.get_card_list();
+        foreach (IdCard id_card in cards) {
+            if ((new_card != id_card) && (id_card.nai == new_card.nai)) {
+                dups.add(id_card);
             }
-        } while (found);
-        return duplicate_found;
+        }
+
+        foreach (IdCard id_card in dups) {
+            logger.trace("removing duplicate id for '%s'\n".printf(new_card.nai));
+            remove_card_internal(id_card);
+
+            if (new_card.trust_anchor.Compare(id_card.trust_anchor) == 0) {
+                logger.trace("Old and new cards have same trust anchor. Re-using the datetime_added and user_verified fields from the old card.");
+                new_card.trust_anchor.set_datetime_added(id_card.trust_anchor.datetime_added);
+                new_card.trust_anchor.user_verified = id_card.trust_anchor.user_verified;
+            }
+        }
+
+        if (&old_duplicates != null) {
+            old_duplicates = dups;
+        }
+
+        return (dups.size > 0);
     }
 
     public IdCard? find_id_card(string nai, bool force_flat_file_store) {
@@ -187,7 +189,7 @@ public class IdentityManagerModel : Object {
         return retval;
     }
 
-    public void add_card(IdCard card, bool force_flat_file_store) {
+    public void add_card(IdCard card, bool force_flat_file_store, out ArrayList<IdCard>? old_duplicates=null) {
         if (card.temporary) {
             logger.trace("add_card: card is temporary; returning.");
             return;
@@ -199,7 +201,7 @@ public class IdentityManagerModel : Object {
         if (force_flat_file_store)
             set_store_type(IIdentityCardStore.StoreType.FLAT_FILE);
 
-        remove_duplicates(card);
+        remove_duplicates(card, out old_duplicates);
 
         if (!display_name_is_valid(card.display_name, out candidate))
         {
