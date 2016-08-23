@@ -33,7 +33,7 @@ using Gtk;
 
 class IdCardWidget : Box
 {
-    static MoonshotLogger logger = get_logger("IdCardWidget");
+    // static MoonshotLogger logger = get_logger("IdCardWidget");
 
     private static const ShadowType ARROW_SHADOW = ShadowType.NONE;
 

@@ -148,6 +148,10 @@ public class TrustAnchor : Object
 
     public string? get_expiration_date(out string? err_out=null)
     {
+        if (&err_out != null) {
+            err_out = null;
+        }
+
         if (this.ca_cert == "") {
             if (&err_out != null) {
                 err_out = "Trust anchor does not have a ca_certificate";

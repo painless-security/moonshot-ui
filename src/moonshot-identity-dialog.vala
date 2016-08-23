@@ -348,20 +348,6 @@ class IdentityDialog : Dialog
         }
     }
 
-    private static void label_make_bold(Label label)
-    {
-        var font_desc = new Pango.FontDescription();
-
-        font_desc.set_weight(Pango.Weight.BOLD);
-
-        /* This will only affect the weight of the font. The rest is
-         * from the current state of the widget, which comes from the
-         * theme or user prefs, since the font desc only has the
-         * weight flag turned on.
-         */
-        label.modify_font(font_desc);
-    }
-
     private VBox make_services_vbox()
     {
         logger.trace("make_services_vbox");

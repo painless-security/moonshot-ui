@@ -48,10 +48,8 @@ public class IdentityManagerView : Window {
     #endif
     private UIManager ui_manager = new UIManager();
     private Entry search_entry;
-    private VBox vbox_right;
     private CustomVBox custom_vbox;
     private VBox service_prompt_vbox;
-    private Label no_identity_title;
     private Button edit_button;
     private Button remove_button;
 
@@ -189,8 +187,6 @@ public class IdentityManagerView : Window {
     {
         this.filter.refilter();
         redraw_id_card_widgets();
-
-        var has_text = this.search_entry.get_text_length() > 0;
     }
 
     private bool search_entry_key_press_event_cb(Gdk.EventKey e)
@@ -216,7 +212,7 @@ public class IdentityManagerView : Window {
         foreach (IdCard id_card in card_list) {
             logger.trace(@"load_id_cards: Loading card with display name '$(id_card.display_name)'");
             add_id_card_data(id_card);
-            IdCardWidget id_card_widget = add_id_card_widget(id_card);
+            add_id_card_widget(id_card);
         }
     }
     
@@ -251,27 +247,27 @@ public class IdentityManagerView : Window {
                        Columns.PASSWORD_COL, id_card.password);
     }
 
-    private void remove_id_card_data(IdCard id_card)
-    {
-        TreeIter iter;
-        string issuer;
+    // private void remove_id_card_data(IdCard id_card)
+    // {
+    //     TreeIter iter;
+    //     string issuer;
 
-        if (listmodel->get_iter_first(out iter))
-        {
-            do
-            {
-                listmodel->get(iter,
-                               Columns.ISSUER_COL, out issuer);
+    //     if (listmodel->get_iter_first(out iter))
+    //     {
+    //         do
+    //         {
+    //             listmodel->get(iter,
+    //                            Columns.ISSUER_COL, out issuer);
 
-                if (id_card.issuer == issuer)
-                {
-                    listmodel->remove(iter);
-                    break;
-                }
-            }
-            while (listmodel->iter_next(ref iter));
-        }
-    }
+    //             if (id_card.issuer == issuer)
+    //             {
+    //                 listmodel->remove(iter);
+    //                 break;
+    //             }
+    //         }
+    //         while (listmodel->iter_next(ref iter));
+    //     }
+    // }
 
     private IdCardWidget add_id_card_widget(IdCard id_card)
     {
@@ -622,21 +618,6 @@ public class IdentityManagerView : Window {
         }
         return true;
     }
-
-
-    // private void label_make_bold(Label label)
-    // {
-    //     var font_desc = new Pango.FontDescription();
-
-    //     font_desc.set_weight(Pango.Weight.BOLD);
-
-    //     /* This will only affect the weight of the font, the rest is
-    //      * from the current state of the widget, which comes from the
-    //      * theme or user prefs, since the font desc only has the
-    //      * weight flag turned on.
-    //      */
-    //     label.modify_font(font_desc);
-    // }
 
     private void on_about_action()
     {

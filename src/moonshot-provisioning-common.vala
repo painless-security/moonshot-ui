@@ -121,7 +121,7 @@ namespace WebProvisioning
 
     public class Parser : Object
     {
-        private static MoonshotLogger logger = new MoonshotLogger("WebProvisioning");
+        // private static MoonshotLogger logger = new MoonshotLogger("WebProvisioning");
 
         private void start_element_func(MarkupParseContext context,
                                         string element_name,

@@ -154,7 +154,6 @@ public class LocalFlatFileStore : Object, IIdentityCardStore {
 
             /* workaround for Centos vala array property bug: use temp arrays */
             var rules = id_card.rules;
-            string[] empty = {};
             string[] rules_patterns = new string[rules.length];
             string[] rules_always_conf = new string[rules.length];
             

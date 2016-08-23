@@ -35,8 +35,6 @@ class TrustAnchorDialog : Dialog
 {
     private static Gdk.Color white = make_color(65535, 65535, 65535);
 
-    private Entry trust_anchor_entry;
-
     public bool complete = false;
 
     public TrustAnchorDialog(IdCard idcard, Window parent)
