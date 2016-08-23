@@ -108,7 +108,7 @@ public class IdentityManagerApp {
             model.set_store_type(IIdentityCardStore.StoreType.KEYRING);
 
         if (!headless)
-            view = new IdentityManagerView(this);
+            view = new IdentityManagerView(this, use_flat_file_store);
         LinkedList<IdCard> card_list = model.get_card_list();
         if (card_list.size > 0)
             this.default_id_card = card_list.last();

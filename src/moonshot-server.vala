@@ -199,12 +199,6 @@ public class MoonshotServer : Object {
         idcard.issuer = realm;
         idcard.update_services(services);
         var ta = new TrustAnchor(ca_cert, server_cert, subject, subject_alt, false);
-        if (!ta.is_empty()) {
-            string ta_datetime_added = TrustAnchor.format_datetime_now();
-            ta.set_datetime_added(ta_datetime_added);
-            logger.trace("install_id_card : Set ta_datetime_added for '%s' to '%s'".printf(idcard.display_name, ta_datetime_added));
-            idcard.set_trust_anchor_from_store(ta);
-        }
 
         logger.trace("install_id_card: Card '%s' has services: '%s'"
                      .printf(idcard.display_name, idcard.get_services_string("; ")));

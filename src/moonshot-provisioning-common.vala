@@ -121,107 +121,114 @@ namespace WebProvisioning
 
     public class Parser : Object
     {
-        // private static MoonshotLogger logger = new MoonshotLogger("WebProvisioning");
+        private static MoonshotLogger logger = new MoonshotLogger("WebProvisioning");
 
         private void start_element_func(MarkupParseContext context,
                                         string element_name,
                                         string[] attribute_names,
                                         string[] attribute_values) throws MarkupError
+        {
+            if (element_name == "identity")
             {
-                if (element_name == "identity")
-                {
-                    card = new IdCard();
-                    _cards += card;
+                card = new IdCard();
+                _cards += card;
 
-                    ta_ca_cert = "";
-                    ta_server_cert = "";
-                    ta_subject = "";
-                    ta_subject_alt = "";
-                }
-                else if (element_name == "rule")
-                {
-                    card.add_rule(Rule());
-                }
+                ta_ca_cert = "";
+                ta_server_cert = "";
+                ta_subject = "";
+                ta_subject_alt = "";
             }
-
-            private void end_element_func(MarkupParseContext context,
-                                          string element_name) throws MarkupError
+            else if (element_name == "rule")
             {
-                if (element_name == "identity")
-                {
-                    if (ta_ca_cert != "" || ta_server_cert != "") {
-                        var ta = new TrustAnchor(ta_ca_cert,
-                                                 ta_server_cert,
-                                                 ta_subject,
-                                                 ta_subject_alt,
-                                                 false);
+                card.add_rule(Rule());
+            }
+        }
+
+        private void end_element_func(MarkupParseContext context,
+                                      string element_name) throws MarkupError
+        {
+            if (element_name == "identity")
+            {
+                if (ta_ca_cert != "" || ta_server_cert != "") {
+                    var ta = new TrustAnchor(ta_ca_cert,
+                                             ta_server_cert,
+                                             ta_subject,
+                                             ta_subject_alt,
+                                             false);
+                    if (!ta.is_empty()) {
+                        string ta_datetime_added = TrustAnchor.format_datetime_now();
+                        ta.set_datetime_added(ta_datetime_added);
+                        logger.trace("end_element_func : Set ta_datetime_added for '%s' to '%s'".printf(card.display_name, ta_datetime_added));
                         card.set_trust_anchor_from_store(ta);
                     }
+
+                    card.set_trust_anchor_from_store(ta);
                 }
             }
+        }
 
-            private void
-            text_element_func(MarkupParseContext context,
-                              string             text,
-                              size_t             text_len) throws MarkupError {
-                unowned SList<string> stack = context.get_element_stack();
+        private void
+        text_element_func(MarkupParseContext context,
+                          string             text,
+                          size_t             text_len) throws MarkupError {
+            unowned SList<string> stack = context.get_element_stack();
 
-                if (text_len < 1)
-                    return;
+            if (text_len < 1)
+                return;
 
-                if (stack.nth_data(0) == "display-name" && display_name_handler(stack))
-                {
-                    card.display_name = text;
-                }
-                else if (stack.nth_data(0) == "user" && user_handler(stack))
-                {
-                    card.username = text;
-                }
-                else if (stack.nth_data(0) == "password" && password_handler(stack))
-                {
-                    card.password = text;
-                }
-                else if (stack.nth_data(0) == "realm" && realm_handler(stack))
-                {
-                    card.issuer = text;
-                }
-                else if (stack.nth_data(0) == "service")
-                {
-                    card.services.add(text);
-                }
+            if (stack.nth_data(0) == "display-name" && display_name_handler(stack))
+            {
+                card.display_name = text;
+            }
+            else if (stack.nth_data(0) == "user" && user_handler(stack))
+            {
+                card.username = text;
+            }
+            else if (stack.nth_data(0) == "password" && password_handler(stack))
+            {
+                card.password = text;
+            }
+            else if (stack.nth_data(0) == "realm" && realm_handler(stack))
+            {
+                card.issuer = text;
+            }
+            else if (stack.nth_data(0) == "service")
+            {
+                card.services.add(text);
+            }
 
-                /* Rules */
-                else if (stack.nth_data(0) == "pattern" && pattern_handler(stack))
-                {
-                    /* use temp array to workaround valac 0.10 bug accessing array property length */
+            /* Rules */
+            else if (stack.nth_data(0) == "pattern" && pattern_handler(stack))
+            {
+                /* use temp array to workaround valac 0.10 bug accessing array property length */
+                var temp = card.rules;
+                card.rules[temp.length - 1].pattern = text;
+            }
+            else if (stack.nth_data(0) == "always-confirm" && always_confirm_handler(stack))
+            {
+                if (text == "true" || text == "false") {
+                    /* use temp array to workaround valac 0.10 bug accessing array property length*/
                     var temp = card.rules;
-                    card.rules[temp.length - 1].pattern = text;
-                }
-                else if (stack.nth_data(0) == "always-confirm" && always_confirm_handler(stack))
-                {
-                    if (text == "true" || text == "false") {
-                        /* use temp array to workaround valac 0.10 bug accessing array property length*/
-                        var temp = card.rules;
-                        card.rules[temp.length - 1].always_confirm = text;
-                    }
-                }
-                else if (stack.nth_data(0) == "ca-cert" && ca_cert_handler(stack))
-                {
-                    ta_ca_cert = text ?? "";
-                }
-                else if (stack.nth_data(0) == "server-cert" && server_cert_handler(stack))
-                {
-                    ta_server_cert = text ?? "";
-                }
-                else if (stack.nth_data(0) == "subject" && subject_handler(stack))
-                {
-                    ta_subject = text;
-                }
-                else if (stack.nth_data(0) == "subject-alt" && subject_alt_handler(stack))
-                {
-                    ta_subject_alt = text;
+                    card.rules[temp.length - 1].always_confirm = text;
                 }
             }
+            else if (stack.nth_data(0) == "ca-cert" && ca_cert_handler(stack))
+            {
+                ta_ca_cert = text ?? "";
+            }
+            else if (stack.nth_data(0) == "server-cert" && server_cert_handler(stack))
+            {
+                ta_server_cert = text ?? "";
+            }
+            else if (stack.nth_data(0) == "subject" && subject_handler(stack))
+            {
+                ta_subject = text;
+            }
+            else if (stack.nth_data(0) == "subject-alt" && subject_alt_handler(stack))
+            {
+                ta_subject_alt = text;
+            }
+        }
 
         private const MarkupParser parser = {
             start_element_func, end_element_func, text_element_func, null, null

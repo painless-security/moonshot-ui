@@ -31,9 +31,12 @@
 */
 using Gee;
 using Gtk;
+using WebProvisioning;
 
 public class IdentityManagerView : Window {
     static MoonshotLogger logger = get_logger("IdentityManagerView");
+
+    bool use_flat_file_store = false;
 
     // The latest year in which Moonshot sources were modified.
     private static int LATEST_EDIT_YEAR = 2016;
@@ -67,6 +70,8 @@ public class IdentityManagerView : Window {
 
     private IdCard selected_idcard = null;
 
+    private string import_directory = null;
+
     private enum Columns
     {
         IDCARD_COL,
@@ -84,8 +89,10 @@ public class IdentityManagerView : Window {
     "        </menu>" +
     "</menubar>";
 
-    public IdentityManagerView(IdentityManagerApp app) {
+    public IdentityManagerView(IdentityManagerApp app, bool use_flat_file_store) {
         parent_app = app;
+        this.use_flat_file_store = use_flat_file_store;
+
         #if OS_MACOS
             osxApp = OSXApplication.get_instance();
         #endif
@@ -246,28 +253,6 @@ public class IdentityManagerView : Window {
                        Columns.USERNAME_COL, id_card.username,
                        Columns.PASSWORD_COL, id_card.password);
     }
-
-    // private void remove_id_card_data(IdCard id_card)
-    // {
-    //     TreeIter iter;
-    //     string issuer;
-
-    //     if (listmodel->get_iter_first(out iter))
-    //     {
-    //         do
-    //         {
-    //             listmodel->get(iter,
-    //                            Columns.ISSUER_COL, out issuer);
-
-    //             if (id_card.issuer == issuer)
-    //             {
-    //                 listmodel->remove(iter);
-    //                 break;
-    //             }
-    //         }
-    //         while (listmodel->iter_next(ref iter));
-    //     }
-    // }
 
     private IdCardWidget add_id_card_widget(IdCard id_card)
     {
@@ -790,7 +775,11 @@ SUCH DAMAGE.
         var add_button = new Button.with_label(_("Add"));
         add_button.clicked.connect((w) => {add_identity_cb();});
         top_table.attach(make_rigid(add_button), num_cols - button_width, num_cols, row, row + 1, fill, fill, 0, 0);
-        logger.trace("build_ui: row spacing for row %d is %u".printf(row, top_table.get_row_spacing(row)));
+        row++;
+
+        var import_button = new Button.with_label(_("Import"));
+        import_button.clicked.connect((w) => {import_identities_cb();});
+        top_table.attach(make_rigid(import_button), num_cols - button_width, num_cols, row, row + 1, fill, fill, 0, 0);
         row++;
 
         this.edit_button = new Button.with_label(_("Edit"));
@@ -891,6 +880,59 @@ SUCH DAMAGE.
         fixed_height.pack_start(button, false, false, 0);
 
         return fixed_height;
+    }
+
+    private void import_identities_cb() {
+        var dialog = new FileChooserDialog("Import File",
+                                           this,
+                                           FileChooserAction.OPEN,
+                                           _("Cancel"),ResponseType.CANCEL,
+                                           _("Save"), ResponseType.ACCEPT,
+                                           null);
+
+        if (import_directory != null) {
+            dialog.set_current_folder(import_directory);
+        }
+
+        if (dialog.run() == ResponseType.ACCEPT)
+        {
+            // Save the parent directory to use as default for next save
+            string filename = dialog.get_filename();
+            var file  = File.new_for_path(filename);
+            import_directory = file.get_parent().get_path();
+
+            int import_count = 0;
+
+            var webp = new Parser(filename);
+            dialog.destroy();
+            webp.parse();
+            logger.trace(@"import_identities_cb: Have $(webp.cards.length) IdCards");
+            foreach (IdCard card in webp.cards)
+            {
+
+                if (card == null) {
+                    logger.trace(@"import_identities_cb: Skipping null IdCard");
+                    continue;
+                }
+
+                bool result = add_identity(card, use_flat_file_store);
+                if (result) {
+                    logger.trace(@"import_identities_cb: Added or updated '$(card.display_name)'");
+                    import_count++;
+                }
+                else {
+                    logger.trace(@"import_identities_cb: Did not add or update '$(card.display_name)'");
+                }
+            }
+            var msg_dialog = new Gtk.MessageDialog(this,
+                                               Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                                               Gtk.MessageType.INFO,
+                                               Gtk.ButtonsType.OK,
+                                               _("Import completed. %d Identities were added or updated."),
+                                               import_count);
+            msg_dialog.run();
+            msg_dialog.destroy();
+        }
     }
 
 }
