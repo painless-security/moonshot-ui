@@ -128,24 +128,24 @@ class IdCardWidget : Box
     update_id_card_label()
     {
         // !!TODO: Use a table to format the labels and values
-        string service_spacer = _("\n                ");
+        string service_spacer = "\n                ";
 
         var display_name = (manager_view.selection_in_progress() && this.id_card.is_no_identity()
-                            ? "Do not use a Moonshot identity for this service" : this.id_card.display_name);
-        var label_text = Markup.printf_escaped(_("<span rise='8000'><big>%s</big></span>"), display_name);
+                            ? _("Do not use a Moonshot identity for this service") : this.id_card.display_name);
+        var label_text = Markup.printf_escaped("<span rise='8000'><big>%s</big></span>", display_name);
 
         if (is_selected)
         {
             if (!this.id_card.is_no_identity()) {
-                label_text += "\nUsername:  " + id_card.username;
-                label_text += "\nRealm:  " + id_card.issuer;
+                label_text += "\n" + _("Username") + ":  " + id_card.username;
+                label_text += "\n" + _("Realm:") + "  " + id_card.issuer;
                 if (!id_card.trust_anchor.is_empty()) {
-                    label_text += _("\nTrust anchor: Enterprise provisioned");
+                    label_text += "\n" + _("Trust anchor: Enterprise provisioned");
                 }
             }
 
             string services_text = _("Services:  ") + this.id_card.get_services_string(service_spacer);
-            label_text += _("\n") + services_text;
+            label_text += "\n" + services_text;
         }
 
         label.set_markup(label_text);

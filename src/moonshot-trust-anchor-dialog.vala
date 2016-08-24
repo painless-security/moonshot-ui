@@ -56,7 +56,7 @@ class TrustAnchorDialog : Dialog
         Label dialog_label = new Label("");
         dialog_label.set_alignment(0, 0);
 
-        string label_markup = _("<span font-weight='heavy'>You are using this identity for the first time with the following trust anchor:</span>");
+        string label_markup = "<span font-weight='heavy'>" + _("You are using this identity for the first time with the following trust anchor:") + "</span>";
 
         dialog_label.set_markup(label_markup);
         dialog_label.set_line_wrap(true);

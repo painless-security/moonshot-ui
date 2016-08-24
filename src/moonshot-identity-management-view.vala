@@ -748,7 +748,7 @@ SUCH DAMAGE.
         this.search_entry.key_press_event.connect(search_entry_key_press_event_cb);
         this.search_entry.set_width_chars(24);
 
-        var search_label_markup =_("<small>") + search_tooltip_text + _("</small>");
+        var search_label_markup ="<small>" + search_tooltip_text + "</small>";
         var full_search_label = new Label(null);
         full_search_label.set_markup(search_label_markup);
         full_search_label.set_alignment(1, 0);
@@ -868,9 +868,9 @@ SUCH DAMAGE.
         if (selection_in_progress()) {
             var result = WarningDialog.confirm(this,
                                                Markup.printf_escaped(
-                                                   _("<span font-weight='heavy'>Do you wish to use the %s service?</span>"),
+                                                   "<span font-weight='heavy'>" + _("Do you wish to use the %s service?") + "</span>",
                                                    this.request_queue.peek_head().service)
-                                               + _("\n\nSelect Yes to select an ID for this service, or No to cancel"),
+                                               + "\n\n" + _("Select Yes to select an ID for this service, or No to cancel"),
                                                "close_moonshot_window");
             if (result) {
                 // Prevent other handlers from handling this event; this keeps the window open.
@@ -892,7 +892,7 @@ SUCH DAMAGE.
     }
 
     private void import_identities_cb() {
-        var dialog = new FileChooserDialog("Import File",
+        var dialog = new FileChooserDialog(_("Import File"),
                                            this,
                                            FileChooserAction.OPEN,
                                            _("Cancel"),ResponseType.CANCEL,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014, JANET(UK)
+ * Copyright (c) 2011-2016, JANET(UK)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -292,7 +292,7 @@ public class IdentityManagerApp {
                 if (!shown) {
                     GLib.error("Couldn't own name org.janet.Moonshot on dbus or show previously launched identity manager.");
                 } else {
-                    stdout.printf("Showed previously launched identity manager.\n");
+                    stdout.printf(_("Showed previously launched identity manager.\n"));
                     GLib.Process.exit(0);
                 }
             }
@@ -456,6 +456,7 @@ public static int main(string[] args) {
     settings.set_long_property("gtk-menu-images", 0, "moonshot");
 #endif
 
+    //TODO?? Do we need to call Intl.setlocale(LocaleCategory.MESSAGES, "");
     Intl.bindtextdomain(Config.GETTEXT_PACKAGE, Config.LOCALEDIR);
     Intl.bind_textdomain_codeset(Config.GETTEXT_PACKAGE, "UTF-8");
     Intl.textdomain(Config.GETTEXT_PACKAGE);
