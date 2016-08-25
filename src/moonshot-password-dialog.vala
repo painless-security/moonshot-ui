@@ -52,8 +52,8 @@ class AddPasswordDialog : Dialog
         this.set_modal(true);
         this.modify_bg(StateType.NORMAL, white);
 
-        this.add_buttons(_("Connect"), ResponseType.OK,
-                         _("Cancel"), ResponseType.CANCEL);
+        this.add_buttons(_("Cancel"), ResponseType.CANCEL,
+                         _("Connect"), ResponseType.OK);
 
         this.set_default_response(ResponseType.OK);
 

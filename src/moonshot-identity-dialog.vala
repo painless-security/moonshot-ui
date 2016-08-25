@@ -118,7 +118,7 @@ class IdentityDialog : Dialog
         this.set_modal(true);
         this.set_transient_for(parent);
 
-        this.add_buttons(_("OK"), ResponseType.OK, CANCEL, ResponseType.CANCEL);
+        this.add_buttons(CANCEL, ResponseType.CANCEL, _("OK"), ResponseType.OK);
         Box content_area = (Box) this.get_content_area();
 
         displayname_label = new Label(@"$displayname_labeltext:");

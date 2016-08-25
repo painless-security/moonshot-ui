@@ -44,8 +44,8 @@ class TrustAnchorDialog : Dialog
         this.set_transient_for(parent);
         this.modify_bg(StateType.NORMAL, white);
 
-        this.add_buttons(_("Confirm"), ResponseType.OK,
-                         _("Cancel"), ResponseType.CANCEL);
+        this.add_buttons(_("Cancel"), ResponseType.CANCEL,
+                         _("Confirm"), ResponseType.OK);
 
         this.set_default_response(ResponseType.OK);
 
