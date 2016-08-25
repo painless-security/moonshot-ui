@@ -95,7 +95,7 @@ public class MoonshotServer : Object {
 
         var id_card = request.id_card;
 
-        if ((id_card != null) && (id_card.display_name != IdCard.NO_IDENTITY)) {
+        if ((id_card != null) && (!id_card.is_no_identity())) {
             nai_out = id_card.nai;
             if ((request.password != null) && (request.password != ""))
                 password_out = request.password;

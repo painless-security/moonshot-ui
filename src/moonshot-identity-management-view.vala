@@ -98,7 +98,7 @@ public class IdentityManagerView : Window {
         #endif
         identities_manager = parent_app.model;
         request_queue = new GLib.Queue<IdentityRequest>();
-        this.title = "Moonshot Identity Selector";
+        this.title = _("Moonshot Identity Selector");
         this.set_position(WindowPosition.CENTER);
         set_default_size(WINDOW_WIDTH, WINDOW_HEIGHT);
         build_ui();
@@ -437,9 +437,9 @@ public class IdentityManagerView : Window {
     {
         bool remove = WarningDialog.confirm(this, 
                                             Markup.printf_escaped(
-                                                "<span font-weight='heavy'>You are about to remove the identity '%s'.</span>",
+                                                "<span font-weight='heavy'>" + _("You are about to remove the identity '%s'.") + "</span>",
                                                 id_card.display_name)
-                                            + "\n\nAre you sure you want to do this?",
+                                            + "\n\n" + _("Are you sure you want to do this?"),
                                             "delete_idcard");
         if (remove) 
             remove_identity(id_card);
