@@ -299,7 +299,17 @@ public class MoonshotServer : Object {
         }
         return installed_cards;
     }
+
+    public async bool confim_ca_certificate(string nai,
+                                            string realm,
+                                            string ca_hash)
+    {
+        logger.trace(@"MoonshotServer.confirm_ca_certificate: nai='$nai'; realm='$realm'; ca_hash='$ca_hash'");
+
+        return true;
+    }
 }
+
 
 
 #elif IPC_MSRPC
@@ -535,8 +545,6 @@ public class MoonshotServer : Object {
 
         return success;
     }
-
 }
-
 
 #endif
