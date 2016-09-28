@@ -31,17 +31,86 @@
 */
 using Gtk;
 
+public delegate void TrustAnchorConfirmationCallback(TrustAnchorConfirmationRequest request);
+
+public class TrustAnchorConfirmationRequest : GLib.Object {
+    static MoonshotLogger logger = get_logger("TrustAnchorConfirmationRequest");
+
+    string nai;
+    string realm;
+    string ca_hash;
+    public bool confirmed = false;
+
+    TrustAnchorConfirmationCallback callback = null;
+
+    public TrustAnchorConfirmationRequest(string nai,
+                                          string realm,
+                                          string ca_hash)
+    {
+        this.nai = nai;
+        this.realm = realm;
+        this.ca_hash = ca_hash;
+    }
+
+    public void set_callback(owned TrustAnchorConfirmationCallback cb)
+    {
+//        #if VALA_0_12
+            this.callback = ((owned) cb);
+//        #else
+//            this.callback = ((IdCard) => cb(IdCard));
+//        #endif
+    }
+
+    public bool execute() {
+
+        var dialog = new TrustAnchorDialog(nai, realm, ca_hash);
+        var response = dialog.run();
+        this.confirmed = (response == ResponseType.OK);
+        dialog.destroy();
+
+        // Send back the confirmation (we can't directly run the
+        // callback because we may be being called from a 'yield')
+        GLib.Idle.add(
+            () => {
+                return_confirmation(confirmed);
+                return false;
+            }
+            );
+
+
+//        return_confirmation(confirmed);
+
+        /* This function works as a GSourceFunc, so it can be passed to
+         * the main loop from other threads
+         */
+        return false;
+    }
+
+    public void return_confirmation(bool confirmed) {
+        this.confirmed = confirmed;
+        logger.trace(@"return_confirmation: confirmed=$confirmed");
+
+        return_if_fail(callback != null);
+        logger.trace("return_confirmation: invoking callback");
+        callback(this);
+    }
+}
+
+
+
 class TrustAnchorDialog : Dialog
 {
     private static Gdk.Color white = make_color(65535, 65535, 65535);
 
     public bool complete = false;
 
-    public TrustAnchorDialog(IdCard idcard, Window parent)
+    public TrustAnchorDialog(string nai,
+                             string realm,
+                             string ca_hash)
     {
         this.set_title(_("Trust Anchor"));
         this.set_modal(true);
-        this.set_transient_for(parent);
+//        this.set_transient_for(parent);
         this.modify_bg(StateType.NORMAL, white);
 
         this.add_buttons(_("Cancel"), ResponseType.CANCEL,
@@ -62,16 +131,16 @@ class TrustAnchorDialog : Dialog
         dialog_label.set_line_wrap(true);
         dialog_label.set_width_chars(60);
                                                    
-        var user_label = new Label(_("Username: ") + idcard.username);
+        var user_label = new Label(_("Username: ") + nai);
         user_label.set_alignment(0, 0.5f);
 
-        var realm_label = new Label(_("Realm: ") + idcard.issuer);
+        var realm_label = new Label(_("Realm: ") + realm);
         realm_label.set_alignment(0, 0.5f);
 
         Label confirm_label = new Label(_("Please confirm that this is the correct trust anchor."));
         confirm_label.set_alignment(0, 0.5f);
 
-        var trust_anchor_display = make_ta_fingerprint_widget(idcard.trust_anchor);
+        var trust_anchor_display = make_ta_fingerprint_widget(ca_hash);
 
         var vbox = new VBox(false, 0);
         vbox.set_border_width(6);

@@ -547,11 +547,6 @@ public class IdentityManagerView : Window {
     {
         return_if_fail(this.selection_in_progress());
 
-        if (!check_and_confirm_trust_anchor(id)) {
-            // Allow user to pick again
-            return;
-        }
-
         var request = this.request_queue.pop_head();
         var identity = check_add_password(id, request, identities_manager);
         send_button.set_sensitive(false);
@@ -584,33 +579,6 @@ public class IdentityManagerView : Window {
 
         remember_identity_binding.active = false;
         remember_identity_binding.hide();
-    }
-
-    private bool check_and_confirm_trust_anchor(IdCard id)
-    {
-        if (!id.trust_anchor.is_empty() && id.trust_anchor.get_anchor_type() == TrustAnchor.TrustAnchorType.SERVER_CERT) {
-            if (!id.trust_anchor.user_verified) {
-
-                bool ret = false;
-                int result = ResponseType.CANCEL;
-                var dialog = new TrustAnchorDialog(id, this);
-                while (!dialog.complete)
-                    result = dialog.run();
-
-                switch (result) {
-                case ResponseType.OK:
-                    id.trust_anchor.user_verified = true;
-                    ret = true;
-                    break;
-                default:
-                    break;
-                }
-
-                dialog.destroy();
-                return ret;
-            }
-        }
-        return true;
     }
 
     private void on_about_action()

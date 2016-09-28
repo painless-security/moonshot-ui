@@ -124,7 +124,7 @@ internal void set_atk_relation(Widget widget, Widget target_widget, Atk.Relation
 }
 
 
-internal Widget make_ta_fingerprint_widget(TrustAnchor trust_anchor)
+internal Widget make_ta_fingerprint_widget(string server_cert)
 {
         var fingerprint_label = new Label(_("SHA-256 fingerprint:"));
         fingerprint_label.set_alignment(0, 0.5f);
@@ -135,7 +135,7 @@ internal Widget make_ta_fingerprint_widget(TrustAnchor trust_anchor)
         fingerprint.set_editable(false);
         fingerprint.set_left_margin(3);
         var buffer = fingerprint.get_buffer();
-        buffer.set_text(colonize(trust_anchor.server_cert, 16), -1);
+        buffer.set_text(colonize(server_cert, 16), -1);
         fingerprint.wrap_mode = Gtk.WrapMode.WORD_CHAR;
 
         set_atk_relation(fingerprint_label, fingerprint, Atk.RelationType.LABEL_FOR);
