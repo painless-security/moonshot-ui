@@ -305,7 +305,7 @@ public class MoonshotServer : Object {
     {
         logger.trace(@"MoonshotServer.confirm_ca_certificate: nai='$nai'; realm='$realm'; ca_hash='$ca_hash'");
 
-        var request = new TrustAnchorConfirmationRequest(nai, realm, ca_hash);
+        var request = new TrustAnchorConfirmationRequest(parent_app, nai, realm, ca_hash);
         request.set_callback((TrustAnchorConfirmationRequest) => confirm_ca_certificate.callback());
         request.execute();
         yield;

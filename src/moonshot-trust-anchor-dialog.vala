@@ -36,18 +36,21 @@ public delegate void TrustAnchorConfirmationCallback(TrustAnchorConfirmationRequ
 public class TrustAnchorConfirmationRequest : GLib.Object {
     static MoonshotLogger logger = get_logger("TrustAnchorConfirmationRequest");
 
-    string nai;
+    IdentityManagerApp parent_app;
+    string userid;
     string realm;
     string ca_hash;
     public bool confirmed = false;
 
     TrustAnchorConfirmationCallback callback = null;
 
-    public TrustAnchorConfirmationRequest(string nai,
+    public TrustAnchorConfirmationRequest(IdentityManagerApp parent_app,
+                                          string userid,
                                           string realm,
                                           string ca_hash)
     {
-        this.nai = nai;
+        this.parent_app = parent_app;
+        this.userid = userid;
         this.realm = realm;
         this.ca_hash = ca_hash;
     }
@@ -63,22 +66,37 @@ public class TrustAnchorConfirmationRequest : GLib.Object {
 
     public bool execute() {
 
-        var dialog = new TrustAnchorDialog(nai, realm, ca_hash);
+        string nai = userid + "@" + realm;
+        IdCard? card = parent_app.model.find_id_card(nai, parent_app.use_flat_file_store);
+        if (card == null) {
+            logger.warn(@"execute: Could not find ID card for NAI $nai; returning false.");
+            return_confirmation(false);
+            return false;
+        }
+        
+        if (card.trust_anchor.get_anchor_type() != TrustAnchor.TrustAnchorType.SERVER_CERT) {
+            logger.warn(@"execute: Trust anchor type for NAI $nai is not SERVER_CERT; returning true.");
+            return_confirmation(true);
+            return false;
+        }
+
+        if (card.trust_anchor.server_cert == ca_hash) {
+            logger.trace(@"execute: Fingerprint for $nai matches stored value; returning true.");
+            return_confirmation(true);
+            return false;
+        }
+
+        var dialog = new TrustAnchorDialog(userid, realm, ca_hash);
         var response = dialog.run();
-        this.confirmed = (response == ResponseType.OK);
         dialog.destroy();
+        bool is_confirmed = (response == ResponseType.OK);
 
-        // Send back the confirmation (we can't directly run the
-        // callback because we may be being called from a 'yield')
-        GLib.Idle.add(
-            () => {
-                return_confirmation(confirmed);
-                return false;
-            }
-            );
+        if (is_confirmed) {
+            card.trust_anchor.update_server_fingerprint(ca_hash);
+            parent_app.model.update_card(card);
+        }            
 
-
-//        return_confirmation(confirmed);
+        return_confirmation(is_confirmed);
 
         /* This function works as a GSourceFunc, so it can be passed to
          * the main loop from other threads
@@ -86,13 +104,21 @@ public class TrustAnchorConfirmationRequest : GLib.Object {
         return false;
     }
 
-    public void return_confirmation(bool confirmed) {
+    private void return_confirmation(bool confirmed) {
+        return_if_fail(callback != null);
+
         this.confirmed = confirmed;
         logger.trace(@"return_confirmation: confirmed=$confirmed");
 
-        return_if_fail(callback != null);
-        logger.trace("return_confirmation: invoking callback");
-        callback(this);
+        // Send back the confirmation (we can't directly run the
+        // callback because we may be being called from a 'yield')
+        GLib.Idle.add(
+            () => {
+                logger.trace("return_confirmation[Idle handler]: invoking callback");
+                callback(this);
+                return false;
+            }
+            );
     }
 }
 
@@ -104,7 +130,7 @@ class TrustAnchorDialog : Dialog
 
     public bool complete = false;
 
-    public TrustAnchorDialog(string nai,
+    public TrustAnchorDialog(string userid,
                              string realm,
                              string ca_hash)
     {
@@ -131,7 +157,7 @@ class TrustAnchorDialog : Dialog
         dialog_label.set_line_wrap(true);
         dialog_label.set_width_chars(60);
                                                    
-        var user_label = new Label(_("Username: ") + nai);
+        var user_label = new Label(_("Username: ") + userid);
         user_label.set_alignment(0, 0.5f);
 
         var realm_label = new Label(_("Realm: ") + realm);

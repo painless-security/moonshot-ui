@@ -122,6 +122,10 @@ public class TrustAnchor : Object
         return dt;
     }
 
+    internal void update_server_fingerprint(string fingerprint) {
+        this._server_cert = fingerprint;
+    }
+
     public int Compare(TrustAnchor other)
     {
         if (this.ca_cert != other.ca_cert) {
