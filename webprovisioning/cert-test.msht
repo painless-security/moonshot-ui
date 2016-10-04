@@ -14,18 +14,8 @@
     <password></password>
     <realm>painless-security.com</realm>
     <services>
-      <service>irc/painless-security.com</service>
-      <service>xmpp/painless-security.com</service>
     </services>
     <selection-rules>
-      <rule>
-        <pattern>PATTERN</pattern>
-        <always-confirm>true</always-confirm>
-      </rule>
-      <rule>
-        <pattern>imap/*moonshot.org</pattern>
-        <always-confirm>false</always-confirm>
-      </rule>
     </selection-rules>
     <trust-anchor>
      <!-- PEM encoded, minus header and footer -->
@@ -67,14 +57,8 @@ musuCxXeWkqDtw0clWg6vkf5Tb9v/JQ2PW0=</ca-cert>
     <password></password>
     <realm>painless-security.com</realm>
     <services>
-      <service>irc/painless-security.com</service>
-      <service>email/painless-security.com</service>
     </services>
     <selection-rules>
-      <rule>
-        <pattern>*/painless-security.com</pattern>
-        <always-confirm>true</always-confirm>
-      </rule>
     </selection-rules>
     <trust-anchor>
       <ca-cert>
@@ -116,11 +100,9 @@ lavp3iTNstQs/rdqdI+lPYMokDKXRSD3pK8=
     <password></password>
     <realm>painless-security.com</realm>
     <services>
-      <service>irc/painless-security.com</service>
-      <service>email/painless-security.com</service>
     </services>
     <trust-anchor>
-      <server-cert>3838E17EC9A2A06D7B6030E3C5727E3466EAB4BB4159DCE7CF6297ADAFC8A56F</server-cert>
+      <server-cert>F2FCC5FAD4CCB7A7236A8AEEF5E94E0C0FB27BEC29DE0AE03C5B455D08D4DE77</server-cert>
     </trust-anchor>
   </identity>
     <identity>
@@ -129,8 +111,6 @@ lavp3iTNstQs/rdqdI+lPYMokDKXRSD3pK8=
     <password></password>
     <realm>painless-security.com</realm>
     <services>
-      <service>ssh/painless-security.com</service>
-      <service>email/painless-security.com</service>
     </services>
     <trust-anchor>
       <server-cert>4242424242424242424242424242424242424242424242424242424242424242</server-cert>
