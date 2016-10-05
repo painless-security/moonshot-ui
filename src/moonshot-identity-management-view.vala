@@ -268,6 +268,9 @@ public class IdentityManagerView : Window {
 
         if (this.selected_idcard != null && this.selected_idcard.nai == id_card.nai) {
             logger.trace(@"add_id_card_widget: Expanding selected idcard widget");
+
+            // Ensure that the selected_idcard is one that belongs to the current list of id cards
+            this.selected_idcard = id_card;
             id_card_widget.expand();
         }
         return id_card_widget;
