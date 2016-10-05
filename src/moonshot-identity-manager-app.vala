@@ -82,7 +82,7 @@ public class IdentityManagerApp {
         }
     }
     
-#if LOG4VALA
+#if USE_LOG4VALA
     // Call this from main() to ensure that the logger is initialized
     internal IdentityManagerApp.dummy() {}
 #endif
@@ -415,7 +415,8 @@ const GLib.OptionEntry[] options = {
 
 public static int main(string[] args) {
 
-#if LOG4VALA
+#if USE_LOG4VALA
+    // Initialize the logger.
     new IdentityManagerApp.dummy();
 #endif
 
