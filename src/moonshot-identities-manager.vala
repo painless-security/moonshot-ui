@@ -157,9 +157,8 @@ public class IdentityManagerModel : Object {
             remove_card_internal(id_card);
 
             if (new_card.trust_anchor.Compare(id_card.trust_anchor) == 0) {
-                logger.trace("Old and new cards have same trust anchor. Re-using the datetime_added and user_verified fields from the old card.");
+                logger.trace("Old and new cards have same trust anchor. Re-using the datetime_added field from the old card.");
                 new_card.trust_anchor.set_datetime_added(id_card.trust_anchor.datetime_added);
-                new_card.trust_anchor.user_verified = id_card.trust_anchor.user_verified;
             }
         }
 

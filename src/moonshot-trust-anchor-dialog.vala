@@ -74,8 +74,8 @@ public class TrustAnchorConfirmationRequest : GLib.Object {
             return false;
         }
         
-        if (card.trust_anchor.get_anchor_type() != TrustAnchor.TrustAnchorType.SERVER_CERT) {
-            logger.warn(@"execute: Trust anchor type for NAI $nai is not SERVER_CERT; returning true.");
+        if (!(card.trust_anchor.is_empty() || card.trust_anchor.get_anchor_type() == TrustAnchor.TrustAnchorType.SERVER_CERT)) {
+            logger.warn(@"execute: Trust anchor type for NAI $nai is not empty or SERVER_CERT; returning true.");
             return_confirmation(true);
             return false;
         }
@@ -92,6 +92,8 @@ public class TrustAnchorConfirmationRequest : GLib.Object {
         bool is_confirmed = (response == ResponseType.OK);
 
         if (is_confirmed) {
+            logger.trace(@"execute: Fingerprint confirmed; updating stored value.");
+
             card.trust_anchor.update_server_fingerprint(ca_hash);
             parent_app.model.update_card(card);
         }            

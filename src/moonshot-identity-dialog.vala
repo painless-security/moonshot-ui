@@ -236,10 +236,10 @@ class IdentityDialog : Dialog
 
         if (id.trust_anchor.get_anchor_type() == TrustAnchor.TrustAnchorType.SERVER_CERT) {
             Widget fingerprint = make_ta_fingerprint_widget(id.trust_anchor.server_cert);
-            ta_table.attach(fingerprint, 0, 1, row, row + 2, fill_and_expand, fill_and_expand, 5, 5);
+            // ta_table.attach(fingerprint, 0, 1, row, row + 2, fill_and_expand, fill_and_expand, 5, 5);
 
             // To make the fingerprint box wider, try:
-            // ta_table.attach(fingerprint, 0, 2, row, row + 2, fill_and_expand, fill_and_expand, 20, 5);
+            ta_table.attach(fingerprint, 0, 2, row, row + 2, fill_and_expand, fill_and_expand, 20, 5);
 
         }
         else {

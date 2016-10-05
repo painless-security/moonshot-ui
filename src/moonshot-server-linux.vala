@@ -199,7 +199,7 @@ public class MoonshotServer : Object {
             idcard.store_password = true;
         idcard.issuer = realm;
         idcard.update_services(services);
-        var ta = new TrustAnchor(ca_cert, server_cert, subject, subject_alt, false);
+        var ta = new TrustAnchor(ca_cert, server_cert, subject, subject_alt);
 
         if (!ta.is_empty()) {
             // We have to set the datetime_added here, because it isn't delivered via IPC.
