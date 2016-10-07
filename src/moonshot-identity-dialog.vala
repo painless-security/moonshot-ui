@@ -196,7 +196,7 @@ class IdentityDialog : Dialog
 
         this.set_border_width(6);
         this.set_resizable(false);
-        this.modify_bg(StateType.NORMAL, white);
+        set_bg_color(this);
         this.show_all();
     }
 
@@ -370,7 +370,7 @@ class IdentityDialog : Dialog
         var services_table = new Table(card.services.size, 1, false);
         services_table.set_row_spacings(1);
         services_table.set_col_spacings(0);
-        services_table.modify_bg(StateType.NORMAL, white);
+        set_bg_color(services_table);
 
         var table_button_hbox = new HBox(false, 6);
         table_button_hbox.pack_start(services_vscroll, true, true, 4);
@@ -383,7 +383,7 @@ class IdentityDialog : Dialog
         // A table doesn't have a background color, so put it in an EventBox, and
         // set the EventBox's background color instead.
         EventBox table_bg = new EventBox();
-        table_bg.modify_bg(StateType.NORMAL, white);
+        set_bg_color(table_bg);
         table_bg.add(services_table);
         services_vbox_alignment.add(table_bg);
 

@@ -634,7 +634,7 @@ SUCH DAMAGE.
         about.set_modal(true);
         about.set_transient_for(this);
         about.response.connect((a, b) => {about.destroy();});
-        about.modify_bg(StateType.NORMAL, white);
+        set_bg_color(about);
         
         about.run();
     }
@@ -682,8 +682,7 @@ SUCH DAMAGE.
 
     private void build_ui()
     {
-        // Note: On Debian7/Gtk+2, the menu bar remains gray. This doesn't happen on Debian8/Gtk+3.
-        this.modify_bg(StateType.NORMAL, white);
+        set_bg_color(this);
 
         create_ui_manager();
 
@@ -791,7 +790,6 @@ SUCH DAMAGE.
 //        quit_item.hide();
         
         Gtk.MenuShell menushell = this.ui_manager.get_widget("/MenuBar") as Gtk.MenuShell;
-        menushell.modify_bg(StateType.NORMAL, white);
 
         osxApp.set_menu_bar(menushell);
         osxApp.set_use_quartz_accelerators(true);
@@ -800,7 +798,7 @@ SUCH DAMAGE.
 #else
         var menubar = this.ui_manager.get_widget("/MenuBar");
         main_vbox.pack_start(menubar, false, false, 0);
-        menubar.modify_bg(StateType.NORMAL, white);
+        set_bg_color(menubar);
 #endif
         main_vbox.pack_start(top_table, true, true, 6);
 

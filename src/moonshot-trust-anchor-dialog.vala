@@ -139,7 +139,7 @@ class TrustAnchorDialog : Dialog
         this.set_title(_("Trust Anchor"));
         this.set_modal(true);
 //        this.set_transient_for(parent);
-        this.modify_bg(StateType.NORMAL, white);
+        set_bg_color(this);
 
         this.add_buttons(_("Cancel"), ResponseType.CANCEL,
                          _("Confirm"), ResponseType.OK);
@@ -148,7 +148,7 @@ class TrustAnchorDialog : Dialog
 
         var content_area = this.get_content_area();
         ((Box) content_area).set_spacing(12);
-        content_area.modify_bg(StateType.NORMAL, white);
+        set_bg_color(content_area);
 
         Label dialog_label = new Label("");
         dialog_label.set_alignment(0, 0);

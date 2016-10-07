@@ -173,3 +173,17 @@ internal static string colonize(string input, int bytes_per_line) {
     }
     return result;
 }
+
+static Gdk.Color white;
+static void set_bg_color(Widget w)
+{
+#if OS_WIN32
+
+    if (white == null) {
+        white = make_color(65535, 65535, 65535);
+    }
+
+    w.modify_bg(StateType.NORMAL, white);
+
+#endif
+}
