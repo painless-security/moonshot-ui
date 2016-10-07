@@ -167,7 +167,7 @@ class IdCardWidget : Box
         Label service_list = new Label(services_text);
         service_list.set_alignment(0, 0);
         service_list.set_ellipsize(Pango.EllipsizeMode.END);
-        service_list.set_width_chars(50);
+        service_list.set_max_width_chars(50);
         services_hbox.pack_start(services_label, false, false, 0);
         services_hbox.pack_start(service_list, false, false, 0);
         details.pack_start(services_hbox);
