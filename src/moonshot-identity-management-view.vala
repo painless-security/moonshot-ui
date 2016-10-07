@@ -912,14 +912,15 @@ SUCH DAMAGE.
                     logger.trace(@"import_identities_cb: Did not add or update '$(card.display_name)'");
                 }
             }
-            var msg_dialog = new Gtk.MessageDialog(this,
-                                               Gtk.DialogFlags.DESTROY_WITH_PARENT,
-                                               Gtk.MessageType.INFO,
-                                               Gtk.ButtonsType.OK,
-                                               _("Import completed. %d Identities were added or updated."),
-                                               import_count);
-            msg_dialog.run();
-            msg_dialog.destroy();
+            if (import_count == 0) {
+                var msg_dialog = new Gtk.MessageDialog(this,
+                                                       Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                                                       Gtk.MessageType.INFO,
+                                                       Gtk.ButtonsType.OK,
+                                                       _("Import completed. No identities were added or updated."));
+                msg_dialog.run();
+                msg_dialog.destroy();
+            }
         }
         dialog.destroy();
     }
