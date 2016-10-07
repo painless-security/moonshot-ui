@@ -166,6 +166,7 @@ class IdCardWidget : Box
         string services_text = this.id_card.get_services_string("\n");
         Label service_list = new Label(services_text);
         service_list.set_alignment(0, 0);
+        service_list.set_ellipsize(Pango.EllipsizeMode.END);
         services_hbox.pack_start(services_label, false, false, 0);
         services_hbox.pack_start(service_list, false, false, 0);
         details.pack_start(services_hbox);
