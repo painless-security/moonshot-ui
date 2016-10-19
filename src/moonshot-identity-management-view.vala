@@ -68,12 +68,7 @@ public class IdentityManagerView : Window {
 
     internal CheckButton remember_identity_binding = null;
 
-    //!!TODO The ID Selector depends on each card having a unique NAI. (See especially
-    // the TrustAnchorConfirmationRequest.) However, there are scenarios that allow for
-    // non-uniqueness to occur, at least potentially. For example, the user can
-    // edit the username and/or realm to create a duplicate NAI of another card.
-    // We currently handle this -- inelegantly -- in load_id_cards().
-    private string selected_nai = null;
+    private IdCard selected_card = null;
 
     private string import_directory = null;
 
@@ -285,7 +280,7 @@ public class IdentityManagerView : Window {
     {
         logger.trace("add_id_card_widget: id_card.nai='%s'; selected nai='%s'"
                      .printf(id_card.nai, 
-                             this.selected_nai == null ? "[null selection]" : this.selected_nai));
+                             this.selected_card == null ? "[null selection]" : this.selected_card.nai));
 
 
         var id_card_widget = new IdCardWidget(id_card, this);
@@ -293,10 +288,19 @@ public class IdentityManagerView : Window {
         id_card_widget.expanded.connect(this.widget_selected_cb);
         id_card_widget.collapsed.connect(this.widget_unselected_cb);
 
-        if (this.selected_nai == id_card.nai) {
+        if (this.selected_card != null && this.selected_card.nai == id_card.nai) {
             logger.trace(@"add_id_card_widget: Expanding selected idcard widget");
-
             id_card_widget.expand();
+
+            // After a card is added, modified, or deleted, we reload all the cards.
+            // (I'm not sure why, or if it's necessary to do this.) This means that the
+            // selected_card may now point to a card instance that's not in the current list.
+            // Hence the only way to carry the selection across reloads is to identify
+            // the selected card by its NAI. And hence we need to reset what our idea of the
+            // "selected card" is.
+            // There should be a better way to do this, especially since we're not great
+            // at preventing duplicate NAIs.
+            this.selected_card = id_card;
         }
         return id_card_widget;
     }
@@ -305,7 +309,7 @@ public class IdentityManagerView : Window {
     {
         logger.trace(@"widget_selected_cb: id_card_widget.id_card.display_name='$(id_card_widget.id_card.display_name)'");
 
-        this.selected_nai = id_card_widget.id_card.nai;
+        this.selected_card = id_card_widget.id_card;
         bool allow_removes = !id_card_widget.id_card.is_no_identity();
         this.remove_button.set_sensitive(allow_removes);
         this.edit_button.set_sensitive(true);
@@ -319,7 +323,7 @@ public class IdentityManagerView : Window {
     {
         logger.trace(@"widget_unselected_cb: id_card_widget.id_card.display_name='$(id_card_widget.id_card.display_name)'");
 
-        this.selected_nai = null;
+        this.selected_card = null;
         this.remove_button.set_sensitive(false);
         this.edit_button.set_sensitive(false);
         this.custom_vbox.receive_collapsed_event(id_card_widget);
@@ -431,11 +435,8 @@ public class IdentityManagerView : Window {
     private void remove_identity(IdCard id_card)
     {
         logger.trace(@"remove_identity: id_card.display_name='$(id_card.display_name)'");
-        if (id_card.nai != this.selected_nai) {
-            logger.error("remove_identity: id_card.nai != this.selected_nai!");
-        }
 
-        this.selected_nai = null;
+        this.selected_card = null;
         this.identities_manager.remove_card(id_card);
 
         // Nothing is selected, so disable buttons
@@ -517,7 +518,7 @@ public class IdentityManagerView : Window {
             set_prompting_service(request.service);
             remember_identity_binding.show();
 
-            if (this.custom_vbox.find_idcard_widget(this.selected_nai) != null) {
+            if (this.custom_vbox.find_idcard_widget(this.selected_card) != null) {
                 // A widget is already selected, and has not been filtered out of the display via search
                 send_button.set_sensitive(true);
             }
@@ -789,13 +790,13 @@ SUCH DAMAGE.
         row++;
 
         this.edit_button = new Button.with_label(_("Edit"));
-        edit_button.clicked.connect((w) => {edit_identity_cb(this.selected_idcard());});
+        edit_button.clicked.connect((w) => {edit_identity_cb(this.selected_card);});
         edit_button.set_sensitive(false);
         top_table.attach(make_rigid(edit_button), num_cols - button_width, num_cols, row, row + 1, fill, fill, 0, 0);
         row++;
 
         this.remove_button = new Button.with_label(_("Remove"));
-        remove_button.clicked.connect((w) => {remove_identity_cb(this.selected_idcard());});
+        remove_button.clicked.connect((w) => {remove_identity_cb(this.selected_card);});
         remove_button.set_sensitive(false);
         top_table.attach(make_rigid(remove_button), num_cols - button_width, num_cols, row, row + 1, fill, fill, 0, 0);
         row++;
@@ -803,7 +804,7 @@ SUCH DAMAGE.
         // push the send button down another row.
         row++;
         this.send_button = new Button.with_label(_("Send"));
-        send_button.clicked.connect((w) => {send_identity_cb(this.selected_idcard());});
+        send_button.clicked.connect((w) => {send_identity_cb(this.selected_card);});
         // send_button.set_visible(false);
         send_button.set_sensitive(false);
         top_table.attach(make_rigid(send_button), num_cols - button_width, num_cols, row, row + 1, fill, fill, 0, 0);
@@ -835,11 +836,6 @@ SUCH DAMAGE.
         if (!this.selection_in_progress())
             remember_identity_binding.hide();
     } 
-
-    private IdCard selected_idcard()
-    {
-        return identities_manager.find_id_card(this.selected_nai, use_flat_file_store);
-    }
 
     internal bool selection_in_progress() {
         return !this.request_queue.is_empty();
