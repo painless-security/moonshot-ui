@@ -108,10 +108,32 @@ public class IdentityManagerView : Window {
         set_default_size(WINDOW_WIDTH, WINDOW_HEIGHT);
         build_ui();
         setup_list_model(); 
-        load_id_cards(); 
+        load_id_cards();
         connect_signals();
+        report_duplicate_nais(); 
     }
     
+    private void report_duplicate_nais() {
+        ArrayList<ArrayList<IdCard>> duplicates;
+        identities_manager.find_duplicate_nai_sets(out duplicates);
+        foreach (ArrayList<IdCard> list in duplicates) {
+            string message = _("The following identities use the same Network Access Identifier (NAI),\n'%s'.").printf(list.get(0).nai)
+                + _("\n\nDuplicate NAIs are not allowed. Please remove identities you don't need, or modify") 
+                + _(" user ID or issuer fields so that they are no longer the same NAI.");
+
+            foreach (var card in list) {
+                message += "\n\nDisplay Name: '%s'\nServices:\n     %s".printf(card.display_name, card.get_services_string(",\n     "));
+            }
+            var msg_dialog = new Gtk.MessageDialog(this,
+                                                   Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                                                   Gtk.MessageType.INFO,
+                                                   Gtk.ButtonsType.OK,
+                                                   message);
+            msg_dialog.run();
+            msg_dialog.destroy();
+        }
+    }
+
     private void on_card_list_changed() {
         logger.trace("on_card_list_changed");
         load_id_cards();
@@ -214,8 +236,6 @@ public class IdentityManagerView : Window {
     private void load_id_cards() {
         logger.trace("load_id_cards");
 
-        var nais = new HashMap<string, string>();
-
         custom_vbox.clear();
         this.listmodel->clear();
         LinkedList<IdCard> card_list = identities_manager.get_card_list() ;
@@ -225,19 +245,6 @@ public class IdentityManagerView : Window {
 
         foreach (IdCard id_card in card_list) {
             logger.trace(@"load_id_cards: Loading card with display name '$(id_card.display_name)'");
-
-            //!!TODO: This uniqueness check really belongs somewhere else -- like where we add
-            // IDs, and/or read them from storage. However, we should never hit this.
-
-            if (nais.has_key(id_card.nai)) {
-                string disp_name = nais.get(id_card.nai);
-                string err = _("ID Card '%s' has the same NAI (%s) as ID Card '%s'. NAIs must be unique.")
-                               .printf(id_card.display_name, id_card.nai, disp_name);
-                logger.error(err);
-                var result = WarningDialog.confirm(this, err, "duplicate_nai_found");
-            }
-            nais.set(id_card.nai, id_card.display_name);
-
             add_id_card_data(id_card);
             add_id_card_widget(id_card);
         }
@@ -411,6 +418,9 @@ public class IdentityManagerView : Window {
         switch (result) {
         case ResponseType.OK:
             this.identities_manager.update_card(update_id_card_data(dialog, card));
+
+            // Make sure we haven't created a duplicate NAI via this update.
+            report_duplicate_nais();
             break;
         default:
             break;

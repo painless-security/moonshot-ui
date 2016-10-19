@@ -169,6 +169,47 @@ public class IdentityManagerModel : Object {
         return (dups.size > 0);
     }
 
+
+    public bool find_duplicate_nai_sets(out ArrayList<ArrayList<IdCard>> duplicates)
+    {
+        var nais = new HashMap<string, ArrayList<IdCard>>();
+
+        duplicates = new ArrayList<ArrayList<IdCard>>();
+        LinkedList<IdCard> card_list = get_card_list() ;
+        if (card_list == null) {
+            return false;
+        }
+
+        bool found = false;
+        foreach (IdCard id_card in card_list) {
+            logger.trace(@"load_id_cards: Loading card with display name '$(id_card.display_name)'");
+
+            //!!TODO: This uniqueness check really belongs somewhere else -- like where we add
+            // IDs, and/or read them from storage. However, we should never hit this.
+
+            if (nais.has_key(id_card.nai)) {
+                ArrayList<IdCard> list = nais.get(id_card.nai);
+                list.add(id_card);
+            }
+            else {
+                ArrayList<IdCard> list = new ArrayList<IdCard>();
+                list.add(id_card);
+                nais.set(id_card.nai, list);
+            }
+        }
+
+        duplicates = new ArrayList<ArrayList<IdCard>>();
+        foreach (Map.Entry<string, ArrayList<IdCard>> entry in nais.entries) {
+            var list = entry.value;
+            if (list.size > 1) {
+                duplicates.add(list);
+                found = true;
+            }
+        }
+        return found;
+    }
+
+
     public IdCard? find_id_card(string nai, bool force_flat_file_store) {
         IdCard? retval = null;
         IIdentityCardStore.StoreType saved_store_type = get_store_type();
