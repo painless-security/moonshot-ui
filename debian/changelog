@@ -1,3 +1,9 @@
+moonshot-ui (1.1.0-1) unstable; urgency=medium
+
+  * Package for release
+
+ -- Painless Security <build@painless-security.com>  Fri, 15 Jun 2018 11:43:52 -0400
+
 moonshot-ui (1.1.0~2-1) unstable; urgency=medium
 
   * Send blank strings when moonshot_get_identity() nai/password are null
